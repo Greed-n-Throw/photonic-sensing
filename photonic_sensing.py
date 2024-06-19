@@ -103,9 +103,9 @@ class Light:
     @staticmethod
     def hsv_circle(target_rgb_lt: List[Tuple[float, float, float]]) -> None:
         #  add reduction of n while cross e_v
-        n_v: int = 360
-        e_v: int = 25
-        s_v: int = 2000 // e_v
+        n_v: int = 180
+        e_v: int = 15
+        s_v: int = 4000 // e_v
         t_v: int = 0
         target_hsv_lt: List[Tuple[float, float, float]] = []
         prev_x_v = None
@@ -326,20 +326,20 @@ class Calculation:
 
             r: List[float] = [((r1 + ((t1 * r2 * t2) * e2)) / (1 - (r3 * r2) * e2)) for r1, r2, r3, t1, t2, e2 in zip(
                 r_12, r_23, r_21, t_12, t_21, e)]
-
-            t: List[float] = [((t1 * t2) * e1) / (1 - (r3 * r2) * e2) for r2, r3, t1, t2, e1, e2 in zip(
-                r_23, r_21, t_21, t_23, e_1, e)]
-
             rr_l: List[float] = [abs(x) * abs(x) for x in r]
             rr_f_ll.append(rr_l)
 
+            t: List[float] = [((t1 * t2) * e1) / (1 - (r3 * r2) * e2) for r2, r3, t1, t2, e1, e2 in zip(
+                r_23, r_21, t_21, t_23, e_1, e)]
             tt_l: List[float] = [abs(x) * abs(x) for x in t]
             tt_f_ll.append(tt_l)
         return rr_f_ll, tt_f_ll
 
     @staticmethod
-    def reflexion_n_3(n_3_l, f_val, epsilon_h_l, eta_l, dataset_l, k0_l, d_val) -> List[List[float]]:
+    def reflexion_n_3(n_3_l, f_val, epsilon_h_l, eta_l, dataset_l, k0_l, d_val) \
+            -> Tuple[List[List[float]], List[List[float]]]:
         rr_n_3_ll: List[List[float]] = []
+        tt_n3_ll: List[List[float]] = []
         n_eff_ll: List[List[float]] = Calculation.n_eff_calc(f_val, epsilon_h_l, eta_l)
         n_eff_l: List[float] = n_eff_ll[0]
 
@@ -350,22 +350,29 @@ class Calculation:
         t_21: List[float] = [(1 + x) for x in r_21]
 
         e: List[complex] = [cmath.exp(2j * x * y * d_val) for x, y in zip(k0_l, n_eff_l)]
+        e_1: List[complex] = [cmath.exp(1j * x * y * d_val) for x, y in zip(k0_l, n_eff_l)]
 
         for n_3_val in n_3_l:
             r_23: List[float] = [(x + (-n_3_val)) / (x + n_3_val) for x in n_eff_l]
+            t_23: List[float] = [(1 + x) for x in r_23]
 
             r: List[float] = [((r1 + ((t1 * r2 * t2) * e2)) / (1 - (r3 * r2) * e2)) for r1, r2, r3, t1, t2, e2 in zip(
                 r_12, r_23, r_21, t_12, t_21, e)]
-
             rr_l: List[float] = [abs(x) * abs(x) for x in r]
             rr_n_3_ll.append(rr_l)
 
-        return rr_n_3_ll
+            t: List[float] = [((t1 * t2) * e1) / (1 - (r3 * r2) * e2) for r2, r3, t1, t2, e1, e2 in zip(
+                r_23, r_21, t_21, t_23, e_1, e)]
+            tt_l: List[float] = [abs(x) * abs(x) for x in t]
+            tt_n3_ll.append(tt_l)
+
+        return rr_n_3_ll, tt_n3_ll
 
     @staticmethod
     def reflexion_d(n_3_val: float, f_val: float, epsilon_h_l: List[float], eta_l: List[float], dataset_l: List[float],
-                    k0_l: List[float], d_l: List[float]) -> List[List[float]]:
+                    k0_l: List[float], d_l: List[float]) -> Tuple[List[List[float]], List[List[float]]]:
         rr_d_ll: List[List[float]] = []
+        tt_d_ll: List[List[float]] = []
         n_eff_ll: List[List[float]] = Calculation.n_eff_calc([f_val], epsilon_h_l, eta_l)
         n_eff_l: List[float] = n_eff_ll[0]
 
@@ -377,16 +384,22 @@ class Calculation:
 
         for d_val in d_l:
             e: List[complex] = [cmath.exp(2j * x * y * d_val) for x, y in zip(k0_l, n_eff_l)]
+            e_1: List[complex] = [cmath.exp(1j * x * y * d_val) for x, y in zip(k0_l, n_eff_l)]
 
             r_23: List[float] = [(x + (-n_3_val)) / (x + n_3_val) for x in n_eff_l]
+            t_23: List[float] = [(1 + x) for x in r_23]
 
             r: List[float] = [((r1 + ((t1 * r2 * t2) * e2)) / (1 - (r3 * r2) * e2)) for r1, r2, r3, t1, t2, e2 in zip(
                 r_12, r_23, r_21, t_12, t_21, e)]
-
             rr_l: List[float] = [abs(x) * abs(x) for x in r]
             rr_d_ll.append(rr_l)
 
-        return rr_d_ll
+            t: List[float] = [((t1 * t2) * e1) / (1 - (r3 * r2) * e2) for r2, r3, t1, t2, e1, e2 in zip(
+                r_23, r_21, t_21, t_23, e_1, e)]
+            tt_l: List[float] = [abs(x) * abs(x) for x in t]
+            tt_d_ll.append(tt_l)
+
+        return rr_d_ll, tt_d_ll,
 
     @staticmethod
     def dynamic_range(f_l: List[float], epsilon_h_l: List[float], eta_l: List[float], dataset_l: List[float],
@@ -514,18 +527,28 @@ class Calculation:
                 Light.hsv_circle(rgb_clr_lt)
 
         elif calc_type == "R/lambda n3 var":
-            r_n3_ll = Calculation.reflexion_n_3(n_3_list, [float(entry_f_s)], epsilon_h_list, eta_list,
-                                                sd_ll["glass_n"], k0_list, float(entry_d_s))
+            r_n3_ll, t_n3_ll = Calculation.reflexion_n_3(n_3_list, [float(entry_f_s)], epsilon_h_list, eta_list,
+                                                         sd_ll["glass_n"], k0_list, float(entry_d_s))
             label_l = ["n3 = " + str(n_3_list[i]) for i in range(len(n_3_list))]
             tlt_str, xla_str, y_lab_str = "Reflexion in term of lambda with n3 variations", "wavelength (nm)", "R"
+            tlt2_str, y2_lab_str = "Transmission in term of lambda with n3 variations", 'T'
             Graphic.graphic(vector_lambda_l, r_n3_ll, lab_l=label_l, tlt_s=tlt_str, xla_s=xla_str, yla_s=y_lab_str)
+            Graphic.graphic(vector_lambda_l, t_n3_ll, lab_l=label_l, tlt_s=tlt2_str, xla_s=xla_str, yla_s=y2_lab_str)
+            if color_check_box_s == "on":
+                rgb_clr_lt = Light.rgb_i(n_3_list, t_n3_ll, n_v, vector_lambda_l)
+                Light.hsv_circle(rgb_clr_lt)
 
         elif calc_type == "R/lambda d var":
-            r_d_ll = Calculation.reflexion_d(float(entry_n3_s), float(entry_f_s), epsilon_h_list, eta_list,
-                                             sd_ll["glass_n"], k0_list, d_r_list)
+            r_d_ll, t_d_ll = Calculation.reflexion_d(float(entry_n3_s), float(entry_f_s), epsilon_h_list, eta_list,
+                                                     sd_ll["glass_n"], k0_list, d_r_list)
             label_l = ["d = " + str(d_r_list[i]) for i in range(len(d_r_list))]
             tlt_str, xla_str, y_lab_str = "Reflexion in term of lambda with d variations", "wavelength (nm)", "R"
+            tlt2_str, y2_lab_str = "Transmission in term of lambda with d variations", 'T'
             Graphic.graphic(vector_lambda_l, r_d_ll, lab_l=label_l, tlt_s=tlt_str, xla_s=xla_str, yla_s=y_lab_str)
+            Graphic.graphic(vector_lambda_l, t_d_ll, lab_l=label_l, tlt_s=tlt2_str, xla_s=xla_str, yla_s=y2_lab_str)
+            if color_check_box_s == "on":
+                rgb_clr_lt = Light.rgb_i(d_r_list, t_d_ll, n_v, vector_lambda_l)
+                Light.hsv_circle(rgb_clr_lt)
 
         elif calc_type == "DRi-w":
             dynamic_i, dynamic_w = Calculation.dynamic_range(f_r_list, epsilon_h_list, eta_list, n_substrate_list,
@@ -561,52 +584,72 @@ class Graphic:
         customtkinter.set_default_color_theme("dark-blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
         root = customtkinter.CTk()
-        root.geometry("630x400")
+        root.geometry("1070x300")
 
         frame = customtkinter.CTkFrame(master=root)
         frame.pack(pady=30, padx=30, fill="both", expand=True)
 
-        label = customtkinter.CTkLabel(master=frame, text="Choose values", font=("Roboto", 24))
-        label.grid(row=0, column=0, pady=12, padx=20, sticky="w")
-
+        label_start = customtkinter.CTkLabel(master=frame, text="Start Value:", font=("Roboto", 12))
+        label_start.grid(row=0, column=0, pady=6, padx=12, sticky="w")
         entry_start = customtkinter.CTkOptionMenu(master=frame, values=["0.400"])
-        entry_start.grid(row=1, column=0, pady=12, padx=20)
+        entry_start.grid(row=0, column=1, pady=12, padx=20)
         entry_start.set("0.400")
 
+        label_st = customtkinter.CTkLabel(master=frame, text="                     ", font=("Roboto", 12))
+        label_st.grid(row=0, column=2, pady=6, padx=12, sticky="w")
+        label_st2 = customtkinter.CTkLabel(master=frame, text="                     ", font=("Roboto", 12))
+        label_st2.grid(row=0, column=5, pady=6, padx=12, sticky="w")
+
+        label_stop = customtkinter.CTkLabel(master=frame, text="Stop Value:", font=("Roboto", 12))
+        label_stop.grid(row=0, column=3, pady=6, padx=12, sticky="w")
         entry_stop = customtkinter.CTkOptionMenu(master=frame, values=["0.700", "1.000"])
-        entry_stop.grid(row=1, column=1, pady=12, padx=20)
+        entry_stop.grid(row=0, column=4, pady=12, padx=20)
         entry_stop.set("0.700")
 
+        label_host = customtkinter.CTkLabel(master=frame, text="Host:", font=("Roboto", 12))
+        label_host.grid(row=1, column=0, pady=6, padx=12, sticky="w")
         entry_host = customtkinter.CTkOptionMenu(master=frame, values=["pm_ma", "glass"])
-        entry_host.grid(row=2, column=0, pady=12, padx=20)
+        entry_host.grid(row=1, column=1, pady=12, padx=20)
         entry_host.set("pm_ma")
 
+        label_metal = customtkinter.CTkLabel(master=frame, text="Metal:", font=("Roboto", 12))
+        label_metal.grid(row=1, column=3, pady=6, padx=12, sticky="w")
         entry_metal = customtkinter.CTkOptionMenu(master=frame, values=["gold", "iron", "copper", "plat", "silver"])
-        entry_metal.grid(row=2, column=1, pady=12, padx=20)
+        entry_metal.grid(row=1, column=4, pady=12, padx=20)
         entry_metal.set("gold")
 
+        label_substrate = customtkinter.CTkLabel(master=frame, text="Substrate:", font=("Roboto", 12))
+        label_substrate.grid(row=1, column=6, pady=6, padx=12, sticky="w")
         entry_substrate = customtkinter.CTkOptionMenu(master=frame, values=["glass"])
-        entry_substrate.grid(row=2, column=2, pady=12, padx=20)
+        entry_substrate.grid(row=1, column=7, pady=12, padx=20)
         entry_substrate.set("glass")
 
-        cal_type = customtkinter.CTkOptionMenu(master=frame, values=["I", "R/lambda f var", "R/lambda n3 var", 
+        label_cal_type = customtkinter.CTkLabel(master=frame, text="Calculation Type:", font=("Roboto", 12))
+        label_cal_type.grid(row=0, column=6, pady=6, padx=12, sticky="w")
+        cal_type = customtkinter.CTkOptionMenu(master=frame, values=["I", "R/lambda f var", "R/lambda n3 var",
                                                                      "R/lambda d var", "DRi-w"])
-        cal_type.grid(row=3, column=0, pady=12, padx=20)
+        cal_type.grid(row=0, column=7, pady=12, padx=20)
         cal_type.set("I")
 
+        label_fv = customtkinter.CTkLabel(master=frame, text="f:", font=("Roboto", 12))
+        label_fv.grid(row=2, column=0, pady=6, padx=12, sticky="w")
         entry_fv = customtkinter.CTkOptionMenu(
             master=frame, values=["0.01", "0.02", "0.03", "0.04", "0.05", "0.06", "0.07", "0.08", "0.09", "0.10"])
-        entry_fv.grid(row=4, column=0, pady=12, padx=20)
+        entry_fv.grid(row=2, column=1, pady=12, padx=20)
         entry_fv.set("0.10")
 
+        label_dv = customtkinter.CTkLabel(master=frame, text="DV:", font=("Roboto", 12))
+        label_dv.grid(row=2, column=3, pady=6, padx=12, sticky="w")
         entry_dv = customtkinter.CTkOptionMenu(master=frame,
                                                values=["1000", "10000", "100000", "0.020", "0.080", "0.140"])
-        entry_dv.grid(row=4, column=1, pady=12, padx=20)
+        entry_dv.grid(row=2, column=4, pady=12, padx=20)
         entry_dv.set("0.020")
 
+        label_n3v = customtkinter.CTkLabel(master=frame, text="N3V:", font=("Roboto", 12))
+        label_n3v.grid(row=2, column=6, pady=6, padx=12, sticky="w")
         entry_n3v = customtkinter.CTkOptionMenu(master=frame,
                                                 values=["1.00", "1.05", "1.10", "1.15", "1.20", "1.25", "1.30", "1.33"])
-        entry_n3v.grid(row=4, column=2, pady=12, padx=20)
+        entry_n3v.grid(row=2, column=7, pady=12, padx=20)
         entry_n3v.set("1.00")
 
         def on_button_click():
@@ -614,7 +657,7 @@ class Graphic:
             root.quit()
 
         button = customtkinter.CTkButton(master=frame, text="Start", command=on_button_click)
-        button.grid(row=5, column=0, pady=12, padx=20)
+        button.grid(row=3, column=1, pady=6, padx=12)
 
         def checkbox_event():
             print("checkbox toggled, current value:", check_var.get())
@@ -622,7 +665,7 @@ class Graphic:
         check_var = customtkinter.StringVar(value="off")
         color_checkbox = customtkinter.CTkCheckBox(master=frame, text="Circle Color", command=checkbox_event,
                                                    variable=check_var, onvalue="on", offvalue="off")
-        color_checkbox.grid(row=5, column=1, pady=12, padx=20)
+        color_checkbox.grid(row=4, column=1, pady=6, padx=12)
 
         root.mainloop()
 
