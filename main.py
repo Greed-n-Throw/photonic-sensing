@@ -5,4 +5,3 @@ photonic_sensing.Calculation.do_calculation()
 
 print("start printing")
 plt.show()
-
