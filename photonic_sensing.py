@@ -3,10 +3,11 @@ import numpy as np
 import csv
 import math
 import cmath
-import customtkinter
 import colorsys
 from typing import List
 from typing import Tuple
+import customtkinter as ctk
+from PIL import Image, ImageTk
 
 
 #  _v . _val : value / _l : list / _ll : list of list / _t : tuple / _lt : list of tuples / _b : bool / s : str
@@ -14,13 +15,14 @@ from typing import Tuple
 
 class ConstVal:
     @staticmethod
-    def set_list() -> Tuple[List[float], List[float], List[float], List[float], List[float]]:
+    def set_list() -> Tuple[List[float], List[float], List[float], List[float], List[float], List[float]]:
         f_i_l = list(np.linspace(0.000001, 0.0001, 11))
+        d_i_l = list(np.linspace(100, 10000, 11))
         f_r_l = list(np.linspace(0.01, 0.09, 9))
         d_r_l = list(np.linspace(0.020, 0.140, 13))
         d_dr_l = list(np.linspace(0.020, 0.140, 121))
         n_3_l = list(np.linspace(1.0, 1.33, 12))
-        return f_i_l, f_r_l, d_r_l, d_dr_l, n_3_l
+        return f_i_l, d_i_l, f_r_l, d_r_l, d_dr_l, n_3_l
 
 
 class Light:
@@ -72,44 +74,44 @@ class Light:
         return r_v, g_v, b_v
 
     @staticmethod
-    def rgb_i(f_l: list, i_l: list, n_v: int, lambda_l: List[float]) -> List[Tuple[float, float, float]]:
+    def rgb_i(f_or_d_l: list, i_lll: List[List[List[float]]], n_v: int, lambda_l: List[float]) \
+            -> List[List[Tuple[float, float, float]]]:
         r_l: List[float] = []
         g_l: List[float] = []
         b_l: List[float] = []
         for wavelength in lambda_l:
-            r_v, g_v, b_v = Light.wave_length_to_rgb(wavelength)
-            r_l.append(r_v)
-            g_l.append(g_v)
-            b_l.append(b_v)
+            r_v0, g_v0, b_v0 = Light.wave_length_to_rgb(wavelength)
+            r_l.append(r_v0)
+            g_l.append(g_v0)
+            b_l.append(b_v0)
         r_l_normalized: np.ndarray = np.array(r_l) / 255.0
         g_l_normalized: np.ndarray = np.array(g_l) / 255.0
         b_l_normalized: np.ndarray = np.array(b_l) / 255.0
 
-        r_v: float = 0
-        g_v: float = 0
-        b_v: float = 0
-        color_list: list = []
-        for k in range(len(f_l)):
-            for i in range(n_v):
-                r_v = r_v + i_l[k][i] * r_l_normalized[i]
-                g_v = g_v + i_l[k][i] * g_l_normalized[i]
-                b_v = b_v + i_l[k][i] * b_l_normalized[i]
-            r_v = r_v / n_v
-            g_v = g_v / n_v
-            b_v = b_v / n_v
-            color_list.append((r_v, g_v, b_v))
-        return color_list
+        color_list_list: List[list] = []
+        for m in range(len(i_lll)):
+            color_list: list = []
+            for k in range(len(f_or_d_l)):
+                r_v = 0.0
+                g_v = 0.0
+                b_v = 0.0
+                for i in range(n_v):
+                    r_v = r_v + i_lll[m][k][i] * r_l_normalized[i]
+                    g_v = g_v + i_lll[m][k][i] * g_l_normalized[i]
+                    b_v = b_v + i_lll[m][k][i] * b_l_normalized[i]
+                r_v = r_v / n_v
+                g_v = g_v / n_v
+                b_v = b_v / n_v
+                color_list.append((r_v, g_v, b_v))
+            color_list_list.append(color_list)
+        return color_list_list
 
     @staticmethod
-    def hsv_circle(target_rgb_lt: List[Tuple[float, float, float]]) -> None:
+    def hsv_circle(target_rgb_llt: List[List[Tuple[float, float, float]]]) -> None:
         #  add reduction of n while cross e_v
         n_v: int = 180
-        e_v: int = 15
+        e_v: int = 20
         s_v: int = 4000 // e_v
-        t_v: int = 0
-        target_hsv_lt: List[Tuple[float, float, float]] = []
-        prev_x_v = None
-        prev_y_v = None
 
         fig, ax = plt.subplots(figsize=(10, 10))
         ax.set_xlim(-1.2, 1.2)
@@ -117,9 +119,17 @@ class Light:
         ax.set_aspect('equal')
         ax.axis('off')
 
-        n2_v: int = len(target_rgb_lt)
-        for m in range(n2_v):
-            target_hsv_lt.append(colorsys.rgb_to_hsv(target_rgb_lt[m][0], target_rgb_lt[m][1], target_rgb_lt[m][2]))
+        n1_v: int = len(target_rgb_llt)
+        n2_v: int = len(target_rgb_llt[0])
+
+        list_plot: List[List[Tuple[float, float]]] = [[] for _ in range(n1_v)]
+        target_hsv_llt: List[List[Tuple[float, float, float]]] = []
+        for p in range(n1_v):
+            target_hsv_lt: List[Tuple[float, float, float]] = []
+            for m in range(n2_v):
+                target_hsv_lt.append(colorsys.rgb_to_hsv(np.real(target_rgb_llt[p][m][0]), np.real(target_rgb_llt[p][m][1]),
+                                                         np.real(target_rgb_llt[p][m][2])))
+            target_hsv_llt.append(target_hsv_lt)
 
         for k in range(e_v + 1):
             u: float = int(k / (e_v + 1) * 1000) / 10
@@ -132,19 +142,21 @@ class Light:
                 y_v: float = np.sin(2 * np.pi * i / n_v) * (1 - k / e_v)
                 ax.scatter(x_v, y_v, c=[rgb_color_t], s=s_v)
 
-                for j in range(n2_v):
-                    #  add .pop elements of target_hsv_lt when find trouvé
-                    if (hsv_color_t[0] < target_hsv_lt[j][0] + 1 / ((n_v - 1) * 2)) & (
-                            hsv_color_t[0] > target_hsv_lt[j][0] - 1 / ((n_v - 1) * 2)) & (
-                            hsv_color_t[1] < target_hsv_lt[j][1] + 1 / (e_v * 2)) & (
-                            hsv_color_t[1] > target_hsv_lt[j][1] - 1 / (e_v * 2)):
-                        if t_v == 0:
-                            ax.plot(x_v, y_v, 'k+', markersize=5)
-                        elif prev_x_v is not None and prev_y_v is not None:
-                            ax.plot([prev_x_v, x_v], [prev_y_v, y_v], 'k-')
-                        prev_x_v, prev_y_v = x_v, y_v
-                        t_v = 1
-                        break
+                for o in range(n1_v):
+                    for j in range(n2_v):
+                        if (hsv_color_t[0] < target_hsv_llt[o][j][0] + 1 / ((n_v - 1) * 2)) and \
+                                (hsv_color_t[0] > target_hsv_llt[o][j][0] - 1 / ((n_v - 1) * 2)) and \
+                                (hsv_color_t[1] < target_hsv_llt[o][j][1] + 1 / (e_v * 2)) and \
+                                (hsv_color_t[1] > target_hsv_llt[o][j][1] - 1 / (e_v * 2)):
+                            list_plot[o].append((x_v, y_v))
+                            break
+        for o in range(n1_v):
+            x, y = list_plot[o][0]
+            ax.scatter(x, y, color='k', marker='+', label=f'List {o}')
+            for j in range(1, len(list_plot[o])):
+                x, y = list_plot[o][j]
+                ax.scatter(x, y, color='k', marker='o', s=15)
+        ax.legend()
 
 
 class Material:
@@ -294,15 +306,32 @@ class Calculation:
         return k_ll
 
     @staticmethod
-    def i_calc(f_l: List[float], k0_l: List[float], d_val: float, epsilon_h_l: List[float], eta_l: List[float]) \
-            -> List[List[float]]:
-        i_ll: List[List[float]] = []
-        n_eff_ll: List[List[float]] = Calculation.n_eff_calc(f_l, epsilon_h_l, eta_l)
-        k_ll = Calculation.k_calc(f_l, n_eff_ll)
-        for i in range(len(f_l)):
-            i_l = [np.exp(-2 * x * y * d_val) for x, y in zip(k0_l, k_ll[i])]
-            i_ll.append(i_l)
-        return i_ll
+    def i_calc_f(f_l: List[float], k0_l: List[float], d_val: float, epsilon_h_l: List[float], eta_ll: List[list[float]]) \
+            -> List[List[List[float]]]:
+        i_lll: List[List[List[float]]] = []
+        for k in range(len(eta_ll)):
+            n_eff_ll: List[List[float]] = Calculation.n_eff_calc(f_l, epsilon_h_l, eta_ll[k])
+            k_ll = Calculation.k_calc(f_l, n_eff_ll)
+            i_ll: List[List[float]] = []
+            for i in range(len(f_l)):
+                i_l = [np.exp(-2 * x * y * d_val) for x, y in zip(k0_l, k_ll[i])]
+                i_ll.append(i_l)
+            i_lll.append(i_ll)
+        return i_lll
+
+    @staticmethod
+    def i_calc_d(f_s: float, k0_l: List[float], d_l: List[float], epsilon_h_l: List[float], eta_ll: List[list[float]]) \
+            -> List[List[List[float]]]:
+        i_lll: List[List[List[float]]] = []
+        for k in range(len(eta_ll)):
+            n_eff_ll: List[List[float]] = Calculation.n_eff_calc([f_s], epsilon_h_l, eta_ll[k])
+            k_ll = Calculation.k_calc([f_s], n_eff_ll)
+            i_ll: List[List[float]] = []
+            for d in range(len(d_l)):
+                i_l = [np.exp(-2 * x * y * d) for x, y in zip(k0_l, k_ll[0])]
+                i_ll.append(i_l)
+            i_lll.append(i_ll)
+        return i_lll
 
     @staticmethod
     def reflexion_f(n_3_val: float, f_l: List[float], epsilon_h_l: List[float], eta_l: List[float],
@@ -331,16 +360,16 @@ class Calculation:
 
             t: List[float] = [((t1 * t2) * e1) / (1 - (r3 * r2) * e2) for r2, r3, t1, t2, e1, e2 in zip(
                 r_23, r_21, t_21, t_23, e_1, e)]
-            tt_l: List[float] = [abs(x) * abs(x) for x in t]
+            tt_l: List[float] = [abs(x) * abs(x) * n_3_val * n_3_val / (y * y) for x, y in zip(t, n_l)]
             tt_f_ll.append(tt_l)
         return rr_f_ll, tt_f_ll
 
     @staticmethod
-    def reflexion_n_3(n_3_l, f_val, epsilon_h_l, eta_l, dataset_l, k0_l, d_val) \
+    def reflexion_n_3(n_3_l: list, f_val: float, epsilon_h_l: list, eta_l: list, dataset_l: list, k0_l: list, d_val: float) \
             -> Tuple[List[List[float]], List[List[float]]]:
         rr_n_3_ll: List[List[float]] = []
         tt_n3_ll: List[List[float]] = []
-        n_eff_ll: List[List[float]] = Calculation.n_eff_calc(f_val, epsilon_h_l, eta_l)
+        n_eff_ll: List[List[float]] = Calculation.n_eff_calc([f_val], epsilon_h_l, eta_l)
         n_eff_l: List[float] = n_eff_ll[0]
 
         r_12: List[float] = [(y - x) / (x + y) for x, y in zip(n_eff_l, dataset_l)]
@@ -363,7 +392,7 @@ class Calculation:
 
             t: List[float] = [((t1 * t2) * e1) / (1 - (r3 * r2) * e2) for r2, r3, t1, t2, e1, e2 in zip(
                 r_23, r_21, t_21, t_23, e_1, e)]
-            tt_l: List[float] = [abs(x) * abs(x) for x in t]
+            tt_l: List[float] = [abs(x) * abs(x) * n_3_val * n_3_val / (y * y) for x, y in zip(t, n_eff_l)]
             tt_n3_ll.append(tt_l)
 
         return rr_n_3_ll, tt_n3_ll
@@ -382,12 +411,12 @@ class Calculation:
         r_21: List[float] = [(x - y) / (x + y) for x, y in zip(n_eff_l, dataset_l)]
         t_21: List[float] = [(1 + x) for x in r_21]
 
+        r_23: List[float] = [(x + (-n_3_val)) / (x + n_3_val) for x in n_eff_l]
+        t_23: List[float] = [(1 + x) for x in r_23]
+
         for d_val in d_l:
             e: List[complex] = [cmath.exp(2j * x * y * d_val) for x, y in zip(k0_l, n_eff_l)]
             e_1: List[complex] = [cmath.exp(1j * x * y * d_val) for x, y in zip(k0_l, n_eff_l)]
-
-            r_23: List[float] = [(x + (-n_3_val)) / (x + n_3_val) for x in n_eff_l]
-            t_23: List[float] = [(1 + x) for x in r_23]
 
             r: List[float] = [((r1 + ((t1 * r2 * t2) * e2)) / (1 - (r3 * r2) * e2)) for r1, r2, r3, t1, t2, e2 in zip(
                 r_12, r_23, r_21, t_12, t_21, e)]
@@ -396,7 +425,7 @@ class Calculation:
 
             t: List[float] = [((t1 * t2) * e1) / (1 - (r3 * r2) * e2) for r2, r3, t1, t2, e1, e2 in zip(
                 r_23, r_21, t_21, t_23, e_1, e)]
-            tt_l: List[float] = [abs(x) * abs(x) for x in t]
+            tt_l: List[float] = [abs(x) * abs(x) * n_3_val * n_3_val / (y * y) for x, y in zip(t, n_eff_l)]
             tt_d_ll.append(tt_l)
 
         return rr_d_ll, tt_d_ll,
@@ -426,7 +455,7 @@ class Calculation:
                 rr_133_l: List[float] = [abs(x) * abs(x) for x in r_133]
                 maximum_133: float = max(rr_133_l)
 
-                r_100: List[float] = [((x1 + ((y1 * x2 * y2) * z2)) / (1 - (x3 * x2) * z2)) for 
+                r_100: List[float] = [((x1 + ((y1 * x2 * y2) * z2)) / (1 - (x3 * x2) * z2)) for
                                       x1, x2, x3, y1, y2, z2 in zip(r_12, r_23_100, r_21, t_12, t_21, e)]
                 rr_100_l: List[float] = [abs(x) * abs(x) for x in r_100]
                 maximum_100: float = max(rr_100_l)
@@ -446,12 +475,12 @@ class Calculation:
         return crb_i_ll, crb_w_ll
 
     @staticmethod
-    def do_calculation() -> None:
-        f_i_list, f_r_list, d_r_list, d_dr_list, n_3_list = ConstVal.set_list()
+    def do_calculation(entry_start_s, entry_stop_s, entry_substrate_s, entry_host_s, entry_gold_s, entry_iron_s,
+                       entry_copper_s, entry_plat_s, entry_silver_s, entry_f_s, entry_d_s, entry_n3_s,
+                       entry_dri_s, entry_drw_s, entry_circle_s, calcul_type_s) -> None:
 
-        (entry_f_s, entry_d_s, entry_n3_s, calc_type_s, entry_start_s, entry_stop_s, entry_metal_s, entry_host_s,
-         entry_substrate_s, color_check_box_s) = (Graphic.create_custom_window())
-        print("calc-ul start")
+        f_i_list, d_i_list, f_r_list, d_r_list, d_dr_list, n_3_list = ConstVal.set_list()
+        print("calcul start")
         start_v: float = float(entry_start_s)
         stop_v: float = float(entry_stop_s)
         n_v: int = int((stop_v - start_v) * 10000 + 1)
@@ -460,106 +489,126 @@ class Calculation:
 
         sd_ll, sds_ll = Material.make_smooth_dataset(start_v, stop_v, list(vector_lambda_l))
         epsilon_h_list: List[float] = []
-        n_s_l: List[float] = []
-        n_l: List[float] = []
-        k_s_l: List[float] = []
-        k_l: List[float] = []
+        n_s_ll: List[list[float]] = []
+        n_ll: List[list[float]] = []
+        k_s_ll: List[list[float]] = []
+        k_ll: List[list[float]] = []
         n_substrate_list: List[float] = []
 
-        if entry_host_s == "pm_ma":
+        if entry_host_s == "pmma":
             epsilon_h_list = sds_ll["pm_ma_n_square"]
         elif entry_host_s == "glass":
             epsilon_h_list = sds_ll["glass_n_square"]
 
-        if entry_metal_s == "gold":
-            n_l = sd_ll["gold_n"]
-            n_s_l = sds_ll["gold_n_square"]
-            k_l = sd_ll["gold_k"]
-            k_s_l = sds_ll["gold_k_square"]
-        elif entry_metal_s == "iron":
-            n_l = sd_ll["iron_n"]
-            n_s_l = sds_ll["iron_n_square"]
-            k_l = sd_ll["iron_k"]
-            k_s_l = sds_ll["iron_k_square"]
-        elif entry_metal_s == "copper":
-            n_l = sd_ll["copper_n"]
-            n_s_l = sds_ll["copper_n_square"]
-            k_l = sd_ll["copper_k"]
-            k_s_l = sds_ll["copper_k_square"]
-        elif entry_metal_s == "plat":
-            n_l = sd_ll["plat_n"]
-            n_s_l = sds_ll["plat_n_square"]
-            k_l = sd_ll["plat_k"]
-            k_s_l = sds_ll["plat_k_square"]
-        elif entry_metal_s == "silver":
-            n_l = sd_ll["silver_n"]
-            n_s_l = sds_ll["silver_n_square"]
-            k_l = sd_ll["silver_k"]
-            k_s_l = sds_ll["silver_k_square"]
+        if entry_gold_s == "on":
+            n_ll.append(sd_ll["gold_n"])
+            n_s_ll.append(sds_ll["gold_n_square"])
+            k_ll.append(sd_ll["gold_k"])
+            k_s_ll.append(sds_ll["gold_k_square"])
+        if entry_iron_s == "on":
+            n_ll.append(sd_ll["iron_n"])
+            n_s_ll.append(sds_ll["iron_n_square"])
+            k_ll.append(sd_ll["iron_k"])
+            k_s_ll.append(sds_ll["iron_k_square"])
+        if entry_copper_s == "on":
+            n_ll.append(sd_ll["copper_n"])
+            n_s_ll.append(sds_ll["copper_n_square"])
+            k_ll.append(sd_ll["copper_k"])
+            k_s_ll.append(sds_ll["copper_k_square"])
+        if entry_plat_s == "on":
+            n_ll.append(sd_ll["plat_n"])
+            n_s_ll.append(sds_ll["plat_n_square"])
+            k_ll.append(sd_ll["plat_k"])
+            k_s_ll.append(sds_ll["plat_k_square"])
+        if entry_silver_s == "on":
+            n_ll.append(sd_ll["silver_n"])
+            n_s_ll.append(sds_ll["silver_n_square"])
+            k_ll.append(sd_ll["silver_k"])
+            k_s_ll.append(sds_ll["silver_k_square"])
 
         if entry_substrate_s == "glass":
             n_substrate_list = sd_ll["glass_n"]
 
-        epsilon_m_list: List[float] = [X - Y + 2j * x * y for X, Y, x, y in zip(n_s_l, k_s_l, n_l, k_l)]
-        eta_list: List[float] = [(x - y) / (x + 2 * y) for x, y in zip(epsilon_m_list, epsilon_h_list)]
+        eta_list: List[List[float]] = []
+        print(len(n_ll))
+        for i in range(len(n_ll)):
+            epsilon_m_list: List[float] = ([X - Y + 2j * x * y for X, Y, x, y in zip(n_s_ll[i], k_s_ll[i], n_ll[i],
+                                                                                     k_ll[i])])
+            eta_list.append([(x - y) / (x + 2 * y) for x, y in zip(epsilon_m_list, epsilon_h_list)])
 
-        calc_type: str = calc_type_s
-        if calc_type == 'I':
-            intensity_ll = Calculation.i_calc(f_i_list, k0_list, float(entry_d_s), epsilon_h_list, eta_list)
+        calc_type: str = calcul_type_s
+
+        if calc_type == 'I f var':
+            intensity_lll = Calculation.i_calc_f(f_i_list, k0_list, float(entry_d_s), epsilon_h_list, eta_list)
+            '''
             label_l = ["f = " + str(f_i_list[i]) for i in range(len(f_i_list))]
-            tlt_str, xla_str, y_lab_str = "I", "wavelength (nm)", "intensity"
+            tlt_str, xla_str, y_lab_str = "I f var", "wavelength (nm)", "intensity"
             Graphic.graphic(vector_lambda_l, intensity_ll, lab_l=label_l, tlt_s=tlt_str, xla_s=xla_str,
-                            yla_s=y_lab_str)
-            if color_check_box_s == "on":
-                rgb_clr_lt = Light.rgb_i(f_i_list, intensity_ll, n_v, vector_lambda_l)
-                Light.hsv_circle(rgb_clr_lt)
+                            yla_s=y_lab_str)'''
+
+            rgb_clr_llt = Light.rgb_i(f_i_list, intensity_lll, n_v, vector_lambda_l)
+            Light.hsv_circle(rgb_clr_llt)
+
+        elif calc_type == 'I d var':
+            intensity_lll = Calculation.i_calc_d(float(entry_f_s), k0_list, d_i_list, epsilon_h_list, eta_list)
+            '''
+            label_l = ["d = " + str(f_i_list[i]) for i in range(len(d_i_list))]
+            tlt_str, xla_str, y_lab_str = "I d var", "wavelength (nm)", "intensity"
+            Graphic.graphic(vector_lambda_l, intensity_ll, lab_l=label_l, tlt_s=tlt_str, xla_s=xla_str,
+                            yla_s=y_lab_str)'''
+
+            rgb_clr_llt = Light.rgb_i(d_r_list, intensity_lll, n_v, vector_lambda_l)
+            Light.hsv_circle(rgb_clr_llt)
 
         elif calc_type == "R/lambda f var":
-            r_f_ll, t_f_ll = Calculation.reflexion_f(float(entry_n3_s), f_r_list, epsilon_h_list, eta_list,
+            r_f_ll, t_f_ll = Calculation.reflexion_f(float(entry_n3_s), f_r_list, epsilon_h_list, eta_list[0],
                                                      n_substrate_list, k0_list, float(entry_d_s))
             label_l = ["f = " + str(f_r_list[i]) for i in range(len(f_r_list))]
             tlt_str, xla_str, y_lab_str = "Reflexion in term of lambda with f variations", "wavelength (nm)", "R"
             tlt2_str, y2_lab_str = "Transmission in term of lambda with f variations", 'T'
             Graphic.graphic(vector_lambda_l, r_f_ll, lab_l=label_l, tlt_s=tlt_str, xla_s=xla_str, yla_s=y_lab_str)
             Graphic.graphic(vector_lambda_l, t_f_ll, lab_l=label_l, tlt_s=tlt2_str, xla_s=xla_str, yla_s=y2_lab_str)
-            if color_check_box_s == "on":
-                rgb_clr_lt = Light.rgb_i(f_r_list, t_f_ll, n_v, vector_lambda_l)
-                Light.hsv_circle(rgb_clr_lt)
+            if entry_circle_s == 'on':
+                rgb_clr_llt = Light.rgb_i(f_r_list, [t_f_ll], n_v, vector_lambda_l)
+                Light.hsv_circle(rgb_clr_llt)
 
         elif calc_type == "R/lambda n3 var":
-            r_n3_ll, t_n3_ll = Calculation.reflexion_n_3(n_3_list, [float(entry_f_s)], epsilon_h_list, eta_list,
-                                                         sd_ll["glass_n"], k0_list, float(entry_d_s))
+            r_n3_ll, t_n3_ll = Calculation.reflexion_n_3(n_3_list, float(entry_f_s), epsilon_h_list, eta_list[0],
+                                                         n_substrate_list, k0_list, float(entry_d_s))
             label_l = ["n3 = " + str(n_3_list[i]) for i in range(len(n_3_list))]
             tlt_str, xla_str, y_lab_str = "Reflexion in term of lambda with n3 variations", "wavelength (nm)", "R"
             tlt2_str, y2_lab_str = "Transmission in term of lambda with n3 variations", 'T'
             Graphic.graphic(vector_lambda_l, r_n3_ll, lab_l=label_l, tlt_s=tlt_str, xla_s=xla_str, yla_s=y_lab_str)
             Graphic.graphic(vector_lambda_l, t_n3_ll, lab_l=label_l, tlt_s=tlt2_str, xla_s=xla_str, yla_s=y2_lab_str)
-            if color_check_box_s == "on":
-                rgb_clr_lt = Light.rgb_i(n_3_list, t_n3_ll, n_v, vector_lambda_l)
-                Light.hsv_circle(rgb_clr_lt)
+            if entry_circle_s == 'on':
+                rgb_clr_llt = Light.rgb_i(n_3_list, [t_n3_ll], n_v, vector_lambda_l)
+                Light.hsv_circle(rgb_clr_llt)
 
         elif calc_type == "R/lambda d var":
-            r_d_ll, t_d_ll = Calculation.reflexion_d(float(entry_n3_s), float(entry_f_s), epsilon_h_list, eta_list,
+            r_d_ll, t_d_ll = Calculation.reflexion_d(float(entry_n3_s), float(entry_f_s), epsilon_h_list, eta_list[0],
                                                      sd_ll["glass_n"], k0_list, d_r_list)
             label_l = ["d = " + str(d_r_list[i]) for i in range(len(d_r_list))]
             tlt_str, xla_str, y_lab_str = "Reflexion in term of lambda with d variations", "wavelength (nm)", "R"
             tlt2_str, y2_lab_str = "Transmission in term of lambda with d variations", 'T'
             Graphic.graphic(vector_lambda_l, r_d_ll, lab_l=label_l, tlt_s=tlt_str, xla_s=xla_str, yla_s=y_lab_str)
             Graphic.graphic(vector_lambda_l, t_d_ll, lab_l=label_l, tlt_s=tlt2_str, xla_s=xla_str, yla_s=y2_lab_str)
-            if color_check_box_s == "on":
-                rgb_clr_lt = Light.rgb_i(d_r_list, t_d_ll, n_v, vector_lambda_l)
-                Light.hsv_circle(rgb_clr_lt)
+            if entry_circle_s == 'on':
+                rgb_clr_llt = Light.rgb_i(d_r_list, [t_d_ll], n_v, vector_lambda_l)
+                Light.hsv_circle(rgb_clr_llt)
 
-        elif calc_type == "DRi-w":
-            dynamic_i, dynamic_w = Calculation.dynamic_range(f_r_list, epsilon_h_list, eta_list, n_substrate_list,
+        if entry_dri_s == "on" or entry_drw_s == "on":
+            print("feur")
+            dynamic_i, dynamic_w = Calculation.dynamic_range(f_r_list, epsilon_h_list, eta_list[0], n_substrate_list,
                                                              k0_list, d_dr_list)
             label_l = ["f = " + str(f_r_list[i]) for i in range(len(f_r_list))]
-            tlt_str, xla_str, y_lab_str = "Intensity Dynamic Range", "thickness d", "Intensity"
-            Graphic.graphic(d_dr_list, dynamic_i, lab_l=label_l, tlt_s=tlt_str, xla_s=xla_str, yla_s=y_lab_str)
+            if entry_dri_s == "on":
+                tlt_str, xla_str, y_lab_str = "Intensity Dynamic Range", "thickness d", "Intensity"
+                Graphic.graphic(d_dr_list, dynamic_i, lab_l=label_l, tlt_s=tlt_str, xla_s=xla_str, yla_s=y_lab_str)
+            if entry_drw_s == "on":
+                tlt_str, xla_str, y_lab_str = "Wavelength Dynamic Range", "thickness d (μm)", "Wavelength (nm)"
+                Graphic.graphic(d_dr_list, dynamic_w, lab_l=label_l, tlt_s=tlt_str, xla_s=xla_str, yla_s=y_lab_str)
 
-            tlt_str, xla_str, y_lab_str = "Wavelength Dynamic Range", "thickness d (μm)", "Wavelength (nm)"
-            Graphic.graphic(d_dr_list, dynamic_w, lab_l=label_l, tlt_s=tlt_str, xla_s=xla_str, yla_s=y_lab_str)
-        print("calc-ul end")
+        print("calcul end")
 
 
 class Graphic:
@@ -579,95 +628,410 @@ class Graphic:
         plt.tight_layout()
 
     @staticmethod
-    def create_custom_window() -> Tuple[str, str, str, str, str, str, str, str, str, str]:
-        customtkinter.set_appearance_mode("dark")  # Modes: "System" (standard), "Dark", "Light"
-        customtkinter.set_default_color_theme("dark-blue")  # Themes: "blue" (standard), "green", "dark-blue"
+    def print_graph():
+        print("start printing")
+        plt.show()
+        print("end printing")
 
-        root = customtkinter.CTk()
-        root.geometry("1070x300")
+    class Gui(ctk.CTk):
+        def __init__(self):
+            super().__init__()
 
-        frame = customtkinter.CTkFrame(master=root)
-        frame.pack(pady=30, padx=30, fill="both", expand=True)
+            def on_button_click():
+                if self.tabview2.get() == "Color in Thin glass":
+                    if self.tabview3.get() == "f variations":
+                        self.calcul_type = "I f var"
+                    elif self.tabview3.get() == "d variations":
+                        self.calcul_type = "I d var"
+                    Calculation.do_calculation(self.entry_start.get(), self.entry_stop.get(), None,
+                                               self.entry_color_host.get(), self.gold_entry_color.get(),
+                                               self.iron_entry_color.get(), self.copper_entry_color.get(),
+                                               self.plat_entry_color.get(), self.silver_entry_color.get(),
+                                               self.color_checkbox_value_f.get(), self.color_checkbox_value_d.get(), None,
+                                               None, None, None, self.calcul_type
+                                               )
+                elif self.tabview2.get() == "Sensor":
+                    if self.tabview3.get() == "f variations":
+                        self.calcul_type = "R/lambda f var"
+                        Calculation.do_calculation(self.entry_start.get(),
+                                                   self.entry_stop.get(),
+                                                   self.entry_sensor_substrate.get(),
+                                                   self.entry_sensor_host.get(),
+                                                   self.gold_entry_sensor.get(),
+                                                   self.iron_entry_sensor.get(),
+                                                   self.copper_entry_sensor.get(),
+                                                   self.plat_entry_sensor.get(),
+                                                   self.silver_entry_sensor.get(),
+                                                   None,
+                                                   self.sensor_checkbox_f_d.get(),
+                                                   self.sensor_checkbox_f_n3.get(),
+                                                   self.check_dri.get(),
+                                                   self.check_drw.get(),
+                                                   self.check_circle.get(),
+                                                   self.calcul_type
+                                                   )
+                    elif self.tabview3.get() == "d variations":
+                        self.calcul_type = "R/lambda d var"
+                        Calculation.do_calculation(self.entry_start.get(),
+                                                   self.entry_stop.get(),
+                                                   self.entry_sensor_substrate.get(),
+                                                   self.entry_sensor_host.get(),
+                                                   self.gold_entry_sensor.get(),
+                                                   self.iron_entry_sensor.get(),
+                                                   self.copper_entry_sensor.get(),
+                                                   self.plat_entry_sensor.get(),
+                                                   self.silver_entry_sensor.get(),
+                                                   self.sensor_checkbox_d_f.get(),
+                                                   None,
+                                                   self.sensor_checkbox_d_n3.get(),
+                                                   self.check_dri.get(),
+                                                   self.check_drw.get(),
+                                                   self.check_circle.get(),
+                                                   self.calcul_type
+                                                   )
+                    elif self.tabview3.get() == "n3 variations":
+                        self.calcul_type = "R/lambda n3 var"
+                        Calculation.do_calculation(self.entry_start.get(),
+                                                   self.entry_stop.get(),
+                                                   self.entry_sensor_substrate.get(),
+                                                   self.entry_sensor_host.get(),
+                                                   self.gold_entry_sensor.get(),
+                                                   self.iron_entry_sensor.get(),
+                                                   self.copper_entry_sensor.get(),
+                                                   self.plat_entry_sensor.get(),
+                                                   self.silver_entry_sensor.get(),
+                                                   self.sensor_checkbox_n3_f.get(),
+                                                   self.sensor_checkbox_n3_d.get(),
+                                                   None,
+                                                   self.check_dri.get(),
+                                                   self.check_drw.get(),
+                                                   self.check_circle.get(),
+                                                   self.calcul_type
+                                                   )
 
-        label_start = customtkinter.CTkLabel(master=frame, text="Start Value:", font=("Roboto", 12))
-        label_start.grid(row=0, column=0, pady=6, padx=12, sticky="w")
-        entry_start = customtkinter.CTkOptionMenu(master=frame, values=["0.400"])
-        entry_start.grid(row=0, column=1, pady=12, padx=20)
-        entry_start.set("0.400")
+            def on_button_click2():
+                Graphic.print_graph()
 
-        label_st = customtkinter.CTkLabel(master=frame, text="                     ", font=("Roboto", 12))
-        label_st.grid(row=0, column=2, pady=6, padx=12, sticky="w")
-        label_st2 = customtkinter.CTkLabel(master=frame, text="                     ", font=("Roboto", 12))
-        label_st2.grid(row=0, column=5, pady=6, padx=12, sticky="w")
+            font_name = ("Roboto", 12)
+            self.title("CustomTkinter learning")
+            self.geometry(f"{850}x{850}")
 
-        label_stop = customtkinter.CTkLabel(master=frame, text="Stop Value:", font=("Roboto", 12))
-        label_stop.grid(row=0, column=3, pady=6, padx=12, sticky="w")
-        entry_stop = customtkinter.CTkOptionMenu(master=frame, values=["0.700", "1.000"])
-        entry_stop.grid(row=0, column=4, pady=12, padx=20)
-        entry_stop.set("0.700")
+            self.frame = ctk.CTkFrame(master=self)
+            self.frame.pack(pady=25, padx=25, expand=True)
 
-        label_host = customtkinter.CTkLabel(master=frame, text="Host:", font=("Roboto", 12))
-        label_host.grid(row=1, column=0, pady=6, padx=12, sticky="w")
-        entry_host = customtkinter.CTkOptionMenu(master=frame, values=["pm_ma", "glass"])
-        entry_host.grid(row=1, column=1, pady=12, padx=20)
-        entry_host.set("pm_ma")
+            for i in range(8):
+                self.frame.grid_columnconfigure(i, weight=1, minsize=100)
 
-        label_metal = customtkinter.CTkLabel(master=frame, text="Metal:", font=("Roboto", 12))
-        label_metal.grid(row=1, column=3, pady=6, padx=12, sticky="w")
-        entry_metal = customtkinter.CTkOptionMenu(master=frame, values=["gold", "iron", "copper", "plat", "silver"])
-        entry_metal.grid(row=1, column=4, pady=12, padx=20)
-        entry_metal.set("gold")
+            self.image = Image.open("test.png")
+            self.image = self.image.resize((475, 250))
+            self.photo = ImageTk.PhotoImage(self.image)
+            self.label_image = ctk.CTkLabel(self.frame, image=self.photo, text="")
+            self.label_image.grid(row=0, column=0, pady=(25, 0), padx=(25, 0), columnspan=5)
 
-        label_substrate = customtkinter.CTkLabel(master=frame, text="Substrate:", font=("Roboto", 12))
-        label_substrate.grid(row=1, column=6, pady=6, padx=12, sticky="w")
-        entry_substrate = customtkinter.CTkOptionMenu(master=frame, values=["glass"])
-        entry_substrate.grid(row=1, column=7, pady=12, padx=20)
-        entry_substrate.set("glass")
+            self.label_lambda = ctk.CTkLabel(master=self.frame, text="λ : ", font=font_name, width=80)
+            self.label_lambda.grid(row=1, column=0, pady=(25, 10), padx=10, sticky="nw")
 
-        label_cal_type = customtkinter.CTkLabel(master=frame, text="Calculation Type:", font=("Roboto", 12))
-        label_cal_type.grid(row=0, column=6, pady=6, padx=12, sticky="w")
-        cal_type = customtkinter.CTkOptionMenu(master=frame, values=["I", "R/lambda f var", "R/lambda n3 var",
-                                                                     "R/lambda d var", "DRi-w"])
-        cal_type.grid(row=0, column=7, pady=12, padx=20)
-        cal_type.set("I")
+            self.entry_start = ctk.CTkOptionMenu(master=self.frame, values=["0.400"], font=font_name, width=80)
+            self.entry_start.grid(row=1, column=1, pady=(25, 10), padx=10, sticky="nw")
+            self.entry_start.set("0.400")
 
-        label_fv = customtkinter.CTkLabel(master=frame, text="f:", font=("Roboto", 12))
-        label_fv.grid(row=2, column=0, pady=6, padx=12, sticky="w")
-        entry_fv = customtkinter.CTkOptionMenu(
-            master=frame, values=["0.01", "0.02", "0.03", "0.04", "0.05", "0.06", "0.07", "0.08", "0.09", "0.10"])
-        entry_fv.grid(row=2, column=1, pady=12, padx=20)
-        entry_fv.set("0.10")
+            self.label_fleche = ctk.CTkLabel(master=self.frame, text="------------------>", font=font_name, width=80)
+            self.label_fleche.grid(row=1, column=2, pady=(25, 10), padx=10, sticky="nw")
 
-        label_dv = customtkinter.CTkLabel(master=frame, text="DV:", font=("Roboto", 12))
-        label_dv.grid(row=2, column=3, pady=6, padx=12, sticky="w")
-        entry_dv = customtkinter.CTkOptionMenu(master=frame,
-                                               values=["1000", "10000", "100000", "0.020", "0.080", "0.140"])
-        entry_dv.grid(row=2, column=4, pady=12, padx=20)
-        entry_dv.set("0.020")
+            self.entry_stop = ctk.CTkOptionMenu(master=self.frame, values=["0.700", "1.000"], font=font_name, width=80)
+            self.entry_stop.grid(row=1, column=3, pady=(25, 10), padx=10, sticky="nw")
+            self.entry_stop.set("0.700")
 
-        label_n3v = customtkinter.CTkLabel(master=frame, text="N3V:", font=("Roboto", 12))
-        label_n3v.grid(row=2, column=6, pady=6, padx=12, sticky="w")
-        entry_n3v = customtkinter.CTkOptionMenu(master=frame,
-                                                values=["1.00", "1.05", "1.10", "1.15", "1.20", "1.25", "1.30", "1.33"])
-        entry_n3v.grid(row=2, column=7, pady=12, padx=20)
-        entry_n3v.set("1.00")
+            self.tabview = ctk.CTkTabview(master=self.frame, height=250, width=250)
+            self.tabview.grid(row=0, column=5, columnspan=3, padx=25, pady=10, sticky="n")
+            self.tabview.add("n1")
+            self.tabview.add("n2")
+            self.tabview.add("n3")
+            self.tabview.add("f")
+            self.tabview.add("d")
+            self.tabview.add("TE")
+            self.tabview.add("TM")
 
-        def on_button_click():
-            print("Start button clicked")
-            root.quit()
+            self.textbox_n1 = ctk.CTkTextbox(self.tabview.tab("n1"), width=220)
+            self.textbox_n1.grid(padx=10, pady=0, sticky="w")
+            self.textbox_n1.insert("0.0", "n1 is the refraction indice of the substrate, which is a glass")
 
-        button = customtkinter.CTkButton(master=frame, text="Start", command=on_button_click)
-        button.grid(row=3, column=1, pady=6, padx=12)
+            self.textbox_n2 = ctk.CTkTextbox(self.tabview.tab("n2"), width=220)
+            self.textbox_n2.grid(padx=10, pady=0)
+            self.textbox_n2.insert("0.0",
+                                   "n2 is the refraction indice of the film, which is "
+                                   "an association of an Host and nanoparticules of a Metal")
 
-        def checkbox_event():
-            print("checkbox toggled, current value:", check_var.get())
+            self.textbox_n3 = ctk.CTkTextbox(self.tabview.tab("n3"), width=220)
+            self.textbox_n3.grid(padx=10, pady=0)
+            self.textbox_n3.insert("0.0",
+                                   "n3 is the refraction indic e of the ambient space, which is "
+                                   "beetween air and water, squale with humidity")
 
-        check_var = customtkinter.StringVar(value="off")
-        color_checkbox = customtkinter.CTkCheckBox(master=frame, text="Circle Color", command=checkbox_event,
-                                                   variable=check_var, onvalue="on", offvalue="off")
-        color_checkbox.grid(row=4, column=1, pady=6, padx=12)
+            self.textbox_f = ctk.CTkTextbox(self.tabview.tab("f"), width=220)
+            self.textbox_f.grid(padx=10, pady=0)
+            self.textbox_f.insert("0.0",
+                                  "f is the volume fraction of the Metal on it Host, which is a glass or a polymer")
 
-        root.mainloop()
+            self.textbox_d = ctk.CTkTextbox(self.tabview.tab("d"), width=220)
+            self.textbox_d.grid(padx=10, pady=0)
+            self.textbox_d.insert("0.0", "d is the thickness of the film")
 
-        return (entry_fv.get(), entry_dv.get(), entry_n3v.get(), cal_type.get(), entry_start.get(), entry_stop.get(),
-                entry_metal.get(), entry_host.get(), entry_substrate.get(), check_var.get())
+            self.textbox_TE = ctk.CTkTextbox(self.tabview.tab("TE"), width=220)
+            self.textbox_TE.grid(padx=10, pady=0)
+            self.textbox_TE.insert("0.0", "TE is feur TE")
+
+            self.textbox_TM = ctk.CTkTextbox(self.tabview.tab("TM"), width=220)
+            self.textbox_TM.grid(padx=10, pady=0)
+            self.textbox_TM.insert("0.0", "TM is feur TM")
+
+            self.label_line = ctk.CTkLabel(master=self.frame,
+                                            text="---------------------------------------------------------------------"
+                                                 "--------------------------------------------------------------------",
+                                            width=800)
+            self.label_line.grid(row=2, column=0, columnspan=8, pady=0, padx=0)
+
+            self.tabview2 = ctk.CTkTabview(master=self.frame, height=400, width=700)
+            self.tabview2.grid(row=3, column=0, columnspan=8, padx=50, pady=(0, 50), sticky="n")
+            self.tabview2.add("Color in Thin glass")
+            self.tabview2.add("Sensor")
+            self.tabview2.tab("Color in Thin glass").grid_columnconfigure(0, weight=1)
+            self.tabview2.tab("Sensor").grid_columnconfigure(0, weight=1)
+
+            self.label_color_host = ctk.CTkLabel(self.tabview2.tab("Color in Thin glass"), text="Host  :",
+                                                 font=font_name, width=80)
+            self.label_color_host.grid(row=0, column=0, padx=0, pady=10, sticky="nsew")
+
+            self.entry_color_host = ctk.CTkOptionMenu(self.tabview2.tab("Color in Thin glass"), values=["glass"],
+                                                      width=80)
+            self.entry_color_host.grid(row=0, column=1, pady=10, padx=0, sticky="w")
+            self.entry_color_host.set("glass")
+
+            self.label_color_metal = ctk.CTkLabel(self.tabview2.tab("Color in Thin glass"), text="Metal :",
+                                                  font=font_name, width=80)
+            self.label_color_metal.grid(row=1, column=0, padx=0, pady=10, sticky="nsew")
+
+            self.gold_entry_color = ctk.StringVar(value="on")
+            self.iron_entry_color = ctk.StringVar(value="off")
+            self.copper_entry_color = ctk.StringVar(value="off")
+            self.plat_entry_color = ctk.StringVar(value="off")
+            self.silver_entry_color = ctk.StringVar(value="off")
+
+            def checkbox_clicked_color(checkbox):
+                if checkbox == self.color_checkbox_1:
+                    if self.iron_entry_color.get() == self.copper_entry_color.get() == self.plat_entry_color.get() == self.silver_entry_color.get() == "off":
+                        self.gold_entry_color.set("on")
+                elif checkbox == self.color_checkbox_2:
+                    if self.gold_entry_color.get() == self.copper_entry_color.get() == self.plat_entry_color.get() == self.silver_entry_color.get() == "off":
+                        self.iron_entry_color.set("on")
+                elif checkbox == self.color_checkbox_3:
+                    if self.gold_entry_color.get() == self.iron_entry_color.get() == self.plat_entry_color.get() == self.silver_entry_color.get() == "off":
+                        self.copper_entry_color.set("on")
+                elif checkbox == self.color_checkbox_4:
+                    if self.gold_entry_color.get() == self.iron_entry_color.get() == self.copper_entry_color.get() == self.silver_entry_color.get() == "off":
+                        self.plat_entry_color.set("on")
+                elif checkbox == self.color_checkbox_5:
+                    if self.gold_entry_color.get() == self.iron_entry_color.get() == self.copper_entry_color.get() == self.plat_entry_color.get() == "off":
+                        self.silver_entry_color.set("on")
+
+            self.color_checkbox_1 = ctk.CTkCheckBox(self.tabview2.tab("Color in Thin glass"), text="Gold",
+                                                    command=lambda: checkbox_clicked_color(self.color_checkbox_1),
+                                                    variable=self.gold_entry_color, onvalue="on", offvalue="off")
+            self.color_checkbox_1.grid(row=1, column=1, padx=0, pady=10, sticky="nsew")
+            self.color_checkbox_2 = ctk.CTkCheckBox(self.tabview2.tab("Color in Thin glass"), text="Iron",
+                                                    command=lambda: checkbox_clicked_color(self.color_checkbox_2),
+                                                    variable=self.iron_entry_color, onvalue="on", offvalue="off")
+            self.color_checkbox_2.grid(row=1, column=2, padx=0, pady=10, sticky="nsew")
+            self.color_checkbox_3 = ctk.CTkCheckBox(self.tabview2.tab("Color in Thin glass"), text="Copper",
+                                                    command=lambda: checkbox_clicked_color(self.color_checkbox_3),
+                                                    variable=self.copper_entry_color, onvalue="on", offvalue="off")
+            self.color_checkbox_3.grid(row=1, column=3, padx=0, pady=10, sticky="nsew")
+            self.color_checkbox_4 = ctk.CTkCheckBox(self.tabview2.tab("Color in Thin glass"), text="plat",
+                                                    command=lambda: checkbox_clicked_color(self.color_checkbox_4),
+                                                    variable=self.plat_entry_color, onvalue="on", offvalue="off")
+            self.color_checkbox_4.grid(row=1, column=4, padx=0, pady=10, sticky="nsew")
+            self.color_checkbox_5 = ctk.CTkCheckBox(self.tabview2.tab("Color in Thin glass"), text="Silver",
+                                                    command=lambda: checkbox_clicked_color(self.color_checkbox_5),
+                                                    variable=self.silver_entry_color, onvalue="on", offvalue="off")
+            self.color_checkbox_5.grid(row=1, column=5, padx=0, pady=10, sticky="nsew")
+
+            self.tabview3 = ctk.CTkTabview(self.tabview2.tab("Color in Thin glass"), height=100, width=300)
+            self.tabview3.grid(row=2, column=2, columnspan=3, pady=10, padx=5, sticky="nsew")
+            self.tabview3.add("f variations")
+            self.tabview3.add("d variations")
+            self.tabview3.tab("f variations").grid_columnconfigure(0, weight=1)
+            self.tabview3.tab("d variations").grid_columnconfigure(0, weight=1)
+
+            self.label = ctk.CTkLabel(self.tabview3.tab("f variations"), text="d =", font=font_name, width=25)
+            self.label.grid(row=0, column=0, padx=20, pady=10, sticky="nsew")
+            self.color_checkbox_value_d = ctk.CTkOptionMenu(self.tabview3.tab("f variations"),
+                                                      values=["1000", "10000", "100000"],
+                                                      width=100)
+            self.color_checkbox_value_d.grid(row=0, column=1, padx=20, pady=10, sticky="nsew")
+            self.label = ctk.CTkLabel(self.tabview3.tab("f variations"), text="μm", font=font_name, width=25)
+            self.label.grid(row=0, column=2, padx=20, pady=10, sticky="nsew")
+
+            self.label = ctk.CTkLabel(self.tabview3.tab("d variations"), text="f =", font=font_name, width=25)
+            self.label.grid(row=0, column=0, padx=20, pady=10, sticky="nsew")
+            self.color_checkbox_value_f = ctk.CTkOptionMenu(self.tabview3.tab("d variations"),
+                                                      values=["0.0000001", "0.000001", "0.00001", "0.0001", "0.001"],
+                                                      width=100)
+            self.color_checkbox_value_f.grid(row=0, column=1, padx=20, pady=10, sticky="nsew")
+            self.label = ctk.CTkLabel(self.tabview3.tab("d variations"), text="", font=font_name, width=25)
+            self.label.grid(row=0, column=2, padx=20, pady=10, sticky="nsew")
+
+            self.button_color_calcul = ctk.CTkButton(self.tabview2.tab("Color in Thin glass"), text="Calcul", width=60,
+                                                     command=on_button_click)
+            self.button_color_calcul.grid(row=3, column=0, pady=10, padx=10, sticky="w")
+            self.button_color_print = ctk.CTkButton(self.tabview2.tab("Color in Thin glass"), text="Print", width=60,
+                                                    command=on_button_click2)
+            self.button_color_print.grid(row=3, column=6, pady=10, padx=10, sticky="w")
+
+            self.label_color_substrate = ctk.CTkLabel(self.tabview2.tab("Sensor"), text="Substrate :", font=font_name,
+                                                      width=80)
+            self.label_color_substrate.grid(row=0, column=5, padx=0, pady=10, sticky="nsew")
+
+            self.entry_sensor_substrate = ctk.CTkOptionMenu(self.tabview2.tab("Sensor"), values=["glass", "pmma"],
+                                                            width=80)
+            self.entry_sensor_substrate.grid(row=0, column=6, pady=10, padx=0, sticky="w")
+            self.entry_sensor_substrate.set("glass")
+
+            self.label_sensor_host = ctk.CTkLabel(self.tabview2.tab("Sensor"), text="Host  :", font=font_name, width=80)
+            self.label_sensor_host.grid(row=0, column=0, padx=0, pady=10, sticky="nsew")
+
+            self.entry_sensor_host = ctk.CTkOptionMenu(self.tabview2.tab("Sensor"), values=["glass", "pmma"], width=80)
+            self.entry_sensor_host.grid(row=0, column=1, pady=10, padx=0, sticky="w")
+            self.entry_sensor_host.set("pmma")
+
+            self.label_sensor_metal = ctk.CTkLabel(self.tabview2.tab("Sensor"), text="Metal :", font=font_name,
+                                                   width=80)
+            self.label_sensor_metal.grid(row=1, column=0, padx=0, pady=10, sticky="nsew")
+
+            self.gold_entry_sensor = ctk.StringVar(value="on")
+            self.iron_entry_sensor = ctk.StringVar(value="off")
+            self.copper_entry_sensor = ctk.StringVar(value="off")
+            self.plat_entry_sensor = ctk.StringVar(value="off")
+            self.silver_entry_sensor = ctk.StringVar(value="off")
+
+            def checkbox_clicked(checkbox):
+                checkboxes = [self.sensor_checkbox_1, self.sensor_checkbox_2, self.sensor_checkbox_3,
+                              self.sensor_checkbox_4, self.sensor_checkbox_5]
+                for cb in checkboxes:
+                    if cb != checkbox:
+                        if cb == self.sensor_checkbox_1:
+                            self.gold_entry_sensor.set("off")
+                        elif cb == self.sensor_checkbox_2:
+                            self.iron_entry_sensor.set("off")
+                        elif cb == self.sensor_checkbox_3:
+                            self.copper_entry_sensor.set("off")
+                        elif cb == self.sensor_checkbox_4:
+                            self.plat_entry_sensor.set("off")
+                        elif cb == self.sensor_checkbox_5:
+                            self.silver_entry_sensor.set("off")
+
+            self.sensor_checkbox_1 = ctk.CTkCheckBox(self.tabview2.tab("Sensor"), text="Gold",
+                                                     command=lambda: checkbox_clicked(self.sensor_checkbox_1),
+                                                     variable=self.gold_entry_sensor, onvalue="on", offvalue="off")
+            self.sensor_checkbox_1.grid(row=1, column=1, padx=0, pady=10, sticky="nsew")
+            self.sensor_checkbox_2 = ctk.CTkCheckBox(self.tabview2.tab("Sensor"), text="Iron",
+                                                     command=lambda: checkbox_clicked(self.sensor_checkbox_2),
+                                                     variable=self.iron_entry_sensor, onvalue="on", offvalue="off")
+            self.sensor_checkbox_2.grid(row=1, column=2, padx=0, pady=10, sticky="nsew")
+            self.sensor_checkbox_3 = ctk.CTkCheckBox(self.tabview2.tab("Sensor"), text="Copper",
+                                                     command=lambda: checkbox_clicked(self.sensor_checkbox_3),
+                                                     variable=self.copper_entry_sensor, onvalue="on", offvalue="off")
+            self.sensor_checkbox_3.grid(row=1, column=3, padx=0, pady=10, sticky="nsew")
+            self.sensor_checkbox_4 = ctk.CTkCheckBox(self.tabview2.tab("Sensor"), text="plat",
+                                                     command=lambda: checkbox_clicked(self.sensor_checkbox_4),
+                                                     variable=self.plat_entry_sensor, onvalue="on", offvalue="off")
+            self.sensor_checkbox_4.grid(row=1, column=4, padx=0, pady=10, sticky="nsew")
+            self.sensor_checkbox_5 = ctk.CTkCheckBox(self.tabview2.tab("Sensor"), text="Silver",
+                                                     command=lambda: checkbox_clicked(self.sensor_checkbox_5),
+                                                     variable=self.silver_entry_sensor, onvalue="on", offvalue="off")
+            self.sensor_checkbox_5.grid(row=1, column=5, padx=0, pady=10, sticky="nsew")
+
+            self.tabview3 = ctk.CTkTabview(self.tabview2.tab("Sensor"), height=150, width=300)
+            self.tabview3.grid(row=2, column=2, columnspan=3, pady=10, padx=5, sticky="nsew")
+            self.tabview3.add("f variations")
+            self.tabview3.add("d variations")
+            self.tabview3.add("n3 variations")
+            self.tabview3.tab("f variations").grid_columnconfigure(0, weight=1)
+            self.tabview3.tab("d variations").grid_columnconfigure(0, weight=1)
+            self.tabview3.tab("n3 variations").grid_columnconfigure(0, weight=1)
+
+            self.label = ctk.CTkLabel(self.tabview3.tab("f variations"), text="d =", font=font_name, width=25)
+            self.label.grid(row=0, column=0, padx=20, pady=10, sticky="nsew")
+            self.sensor_checkbox_f_d = ctk.CTkOptionMenu(self.tabview3.tab("f variations"), values=["0.020", "0.080",
+                                                                                                    "0.140"], width=100)
+            self.sensor_checkbox_f_d.grid(row=0, column=1, padx=20, pady=10, sticky="nsew")
+            self.label = ctk.CTkLabel(self.tabview3.tab("f variations"), text="μm", font=font_name, width=25)
+            self.label.grid(row=0, column=2, padx=20, pady=10, sticky="nsew")
+
+            self.label = ctk.CTkLabel(self.tabview3.tab("f variations"), text="n3 =", font=font_name, width=25)
+            self.label.grid(row=1, column=0, padx=20, pady=10, sticky="nsew")
+            self.sensor_checkbox_f_n3 = ctk.CTkOptionMenu(self.tabview3.tab("f variations"),
+                                                          values=["1", "1.05", "1.10", "1.15", "1.20", "1.25", "1.30",
+                                                                  "1.33"], width=100)
+            self.sensor_checkbox_f_n3.grid(row=1, column=1, padx=20, pady=10, sticky="nsew")
+            self.label = ctk.CTkLabel(self.tabview3.tab("f variations"), text="", font=font_name, width=25)
+            self.label.grid(row=1, column=2, padx=20, pady=10, sticky="nsew")
+
+            self.label = ctk.CTkLabel(self.tabview3.tab("d variations"), text="f =", font=font_name, width=25)
+            self.label.grid(row=0, column=0, padx=20, pady=10, sticky="nsew")
+            self.sensor_checkbox_d_f = ctk.CTkOptionMenu(self.tabview3.tab("d variations"),
+                                                         values=["0.01", "0.03", "0.05", "0.07", "0.09"],
+                                                         width=100)
+            self.sensor_checkbox_d_f.grid(row=0, column=1, padx=20, pady=10, sticky="nsew")
+            self.label = ctk.CTkLabel(self.tabview3.tab("d variations"), text="", font=font_name, width=25)
+            self.label.grid(row=0, column=2, padx=20, pady=10, sticky="nsew")
+
+            self.label = ctk.CTkLabel(self.tabview3.tab("d variations"), text="n3 =", font=font_name, width=25)
+            self.label.grid(row=1, column=0, padx=20, pady=10, sticky="nsew")
+            self.sensor_checkbox_d_n3 = ctk.CTkOptionMenu(self.tabview3.tab("d variations"),
+                                                          values=["1", "1.05", "1.10", "1.15", "1.20", "1.25", "1.30",
+                                                                  "1.33"], width=100)
+            self.sensor_checkbox_d_n3.grid(row=1, column=1, padx=20, pady=10, sticky="nsew")
+            self.label = ctk.CTkLabel(self.tabview3.tab("d variations"), text="", font=font_name, width=25)
+            self.label.grid(row=1, column=2, padx=20, pady=10, sticky="nsew")
+
+            self.label = ctk.CTkLabel(self.tabview3.tab("n3 variations"), text="f =", font=font_name, width=25)
+            self.label.grid(row=0, column=0, padx=20, pady=10, sticky="nsew")
+            self.sensor_checkbox_n3_f = ctk.CTkOptionMenu(self.tabview3.tab("n3 variations"),
+                                                         values=["0.01", "0.03", "0.05", "0.07", "0.09"],
+                                                         width=100)
+            self.sensor_checkbox_n3_f.grid(row=0, column=1, padx=20, pady=10, sticky="nsew")
+            self.label = ctk.CTkLabel(self.tabview3.tab("n3 variations"), text="", font=font_name, width=25)
+            self.label.grid(row=0, column=2, padx=20, pady=10, sticky="nsew")
+
+            self.label = ctk.CTkLabel(self.tabview3.tab("n3 variations"), text="d =", font=font_name, width=25)
+            self.label.grid(row=1, column=0, padx=20, pady=10, sticky="nsew")
+            self.sensor_checkbox_n3_d = ctk.CTkOptionMenu(self.tabview3.tab("n3 variations"),
+                                                           values=["0.020", "0.080", "0.140"], width=100)
+            self.sensor_checkbox_n3_d.grid(row=1, column=1, padx=20, pady=10, sticky="nsew")
+            self.label = ctk.CTkLabel(self.tabview3.tab("n3 variations"), text="μm", font=font_name, width=25)
+            self.label.grid(row=1, column=2, padx=20, pady=10, sticky="nsew")
+
+            self.check_dri = ctk.StringVar(value="off")
+            self.check_drw = ctk.StringVar(value="off")
+            self.check_circle = ctk.StringVar(value="off")
+
+            self.sensor_checkbox_1 = ctk.CTkCheckBox(self.tabview2.tab("Sensor"), text="DR i", variable=self.check_dri,
+                                                     onvalue="on", offvalue="off")
+            self.sensor_checkbox_1.grid(row=3, column=2, padx=0, pady=10, sticky="nsew")
+            self.sensor_checkbox_2 = ctk.CTkCheckBox(self.tabview2.tab("Sensor"), text="DR w", variable=self.check_drw,
+                                                     onvalue="on", offvalue="off")
+            self.sensor_checkbox_2.grid(row=3, column=3, padx=0, pady=10, sticky="nsew")
+            self.sensor_checkbox_3 = ctk.CTkCheckBox(self.tabview2.tab("Sensor"), text="Color Circle",
+                                                     variable=self.check_circle, onvalue="on", offvalue="off")
+            self.sensor_checkbox_3.grid(row=3, column=4, padx=0, pady=10, sticky="nsew")
+
+            self.dri_entry = self.sensor_checkbox_1.get()
+            self.drw_entry = self.sensor_checkbox_2.get()
+            self.color_circle_entry = self.sensor_checkbox_3.get()
+
+            self.button_sensor_calcul = ctk.CTkButton(self.tabview2.tab("Sensor"), text="Calcul", width=60,
+                                                      command=on_button_click)
+            self.button_sensor_calcul.grid(row=4, column=0, pady=0, padx=10, sticky="w")
+            self.button_sensor_print = ctk.CTkButton(self.tabview2.tab("Sensor"), text="Print", width=60,
+                                                     command=on_button_click2)
+            self.button_sensor_print.grid(row=4, column=6, pady=0, padx=10, sticky="w")
