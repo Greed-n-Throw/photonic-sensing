@@ -127,7 +127,8 @@ class Light:
         for p in range(n1_v):
             target_hsv_lt: List[Tuple[float, float, float]] = []
             for m in range(n2_v):
-                target_hsv_lt.append(colorsys.rgb_to_hsv(np.real(target_rgb_llt[p][m][0]), np.real(target_rgb_llt[p][m][1]),
+                target_hsv_lt.append(colorsys.rgb_to_hsv(np.real(target_rgb_llt[p][m][0]),
+                                                         np.real(target_rgb_llt[p][m][1]),
                                                          np.real(target_rgb_llt[p][m][2])))
             target_hsv_llt.append(target_hsv_lt)
 
@@ -306,8 +307,8 @@ class Calculation:
         return k_ll
 
     @staticmethod
-    def i_calc_f(f_l: List[float], k0_l: List[float], d_val: float, epsilon_h_l: List[float], eta_ll: List[list[float]]) \
-            -> List[List[List[float]]]:
+    def i_calc_f(f_l: List[float], k0_l: List[float], d_val: float, epsilon_h_l: List[float],
+                 eta_ll: List[list[float]]) -> List[List[List[float]]]:
         i_lll: List[List[List[float]]] = []
         for k in range(len(eta_ll)):
             n_eff_ll: List[List[float]] = Calculation.n_eff_calc(f_l, epsilon_h_l, eta_ll[k])
@@ -327,7 +328,7 @@ class Calculation:
             n_eff_ll: List[List[float]] = Calculation.n_eff_calc([f_s], epsilon_h_l, eta_ll[k])
             k_ll = Calculation.k_calc([f_s], n_eff_ll)
             i_ll: List[List[float]] = []
-            for d in range(len(d_l)):
+            for d in d_l:
                 i_l = [np.exp(-2 * x * y * d) for x, y in zip(k0_l, k_ll[0])]
                 i_ll.append(i_l)
             i_lll.append(i_ll)
@@ -365,8 +366,8 @@ class Calculation:
         return rr_f_ll, tt_f_ll
 
     @staticmethod
-    def reflexion_n_3(n_3_l: list, f_val: float, epsilon_h_l: list, eta_l: list, dataset_l: list, k0_l: list, d_val: float) \
-            -> Tuple[List[List[float]], List[List[float]]]:
+    def reflexion_n_3(n_3_l: list, f_val: float, epsilon_h_l: list, eta_l: list, dataset_l: list, k0_l: list,
+                      d_val: float) -> Tuple[List[List[float]], List[List[float]]]:
         rr_n_3_ll: List[List[float]] = []
         tt_n3_ll: List[List[float]] = []
         n_eff_ll: List[List[float]] = Calculation.n_eff_calc([f_val], epsilon_h_l, eta_l)
@@ -533,7 +534,6 @@ class Calculation:
             n_substrate_list = sd_ll["glass_n"]
 
         eta_list: List[List[float]] = []
-        print(len(n_ll))
         for i in range(len(n_ll)):
             epsilon_m_list: List[float] = ([X - Y + 2j * x * y for X, Y, x, y in zip(n_s_ll[i], k_s_ll[i], n_ll[i],
                                                                                      k_ll[i])])
@@ -560,7 +560,7 @@ class Calculation:
             Graphic.graphic(vector_lambda_l, intensity_ll, lab_l=label_l, tlt_s=tlt_str, xla_s=xla_str,
                             yla_s=y_lab_str)'''
 
-            rgb_clr_llt = Light.rgb_i(d_r_list, intensity_lll, n_v, vector_lambda_l)
+            rgb_clr_llt = Light.rgb_i(d_i_list, intensity_lll, n_v, vector_lambda_l)
             Light.hsv_circle(rgb_clr_llt)
 
         elif calc_type == "R/lambda f var":
@@ -586,7 +586,8 @@ class Calculation:
             if entry_reflexion_s == "on":
                 Graphic.graphic(vector_lambda_l, r_n3_ll, lab_l=label_l, tlt_s=tlt_str, xla_s=xla_str, yla_s=y_lab_str)
             if entry_transmission_s == "on":
-                Graphic.graphic(vector_lambda_l, t_n3_ll, lab_l=label_l, tlt_s=tlt2_str, xla_s=xla_str, yla_s=y2_lab_str)
+                Graphic.graphic(vector_lambda_l, t_n3_ll, lab_l=label_l, tlt_s=tlt2_str, xla_s=xla_str,
+                                yla_s=y2_lab_str)
             if entry_circle_s == 'on':
                 rgb_clr_llt = Light.rgb_i(n_3_list, [t_n3_ll], n_v, vector_lambda_l)
                 Light.hsv_circle(rgb_clr_llt)
@@ -645,7 +646,7 @@ class Graphic:
         def __init__(self):
             super().__init__()
 
-            def on_button_click():
+            def calcul_button_click():
                 if self.tabview2.get() == "Color in Thin glass":
                     if self.tabview3.get() == "f variations":
                         self.calcul_type = "I f var"
@@ -756,8 +757,66 @@ class Graphic:
                                                    self.check_drw.get()
                                                    )
 
-            def on_button_click2():
+            def print_button_click():
                 Graphic.print_graph()
+
+            def checkbox_clicked_color(checkbox):
+                if checkbox == self.color_checkbox_1:
+                    if (self.iron_entry_color.get() == self.copper_entry_color.get() == self.plat_entry_color.get() ==
+                            self.silver_entry_color.get() == "off"):
+                        self.gold_entry_color.set("on")
+                elif checkbox == self.color_checkbox_2:
+                    if (self.gold_entry_color.get() == self.copper_entry_color.get() == self.plat_entry_color.get() ==
+                            self.silver_entry_color.get() == "off"):
+                        self.iron_entry_color.set("on")
+                elif checkbox == self.color_checkbox_3:
+                    if (self.gold_entry_color.get() == self.iron_entry_color.get() == self.plat_entry_color.get() ==
+                            self.silver_entry_color.get() == "off"):
+                        self.copper_entry_color.set("on")
+                elif checkbox == self.color_checkbox_4:
+                    if (self.gold_entry_color.get() == self.iron_entry_color.get() == self.copper_entry_color.get() ==
+                            self.silver_entry_color.get() == "off"):
+                        self.plat_entry_color.set("on")
+                elif checkbox == self.color_checkbox_5:
+                    if (self.gold_entry_color.get() == self.iron_entry_color.get() == self.copper_entry_color.get() ==
+                            self.plat_entry_color.get() == "off"):
+                        self.silver_entry_color.set("on")
+
+            def checkbox_clicked(checkbox):
+                checkboxes = [self.sensor_checkbox_1, self.sensor_checkbox_2, self.sensor_checkbox_3,
+                              self.sensor_checkbox_4, self.sensor_checkbox_5]
+                for cb in checkboxes:
+                    if cb != checkbox:
+                        if cb == self.sensor_checkbox_1:
+                            self.gold_entry_sensor.set("off")
+                        elif cb == self.sensor_checkbox_2:
+                            self.iron_entry_sensor.set("off")
+                        elif cb == self.sensor_checkbox_3:
+                            self.copper_entry_sensor.set("off")
+                        elif cb == self.sensor_checkbox_4:
+                            self.plat_entry_sensor.set("off")
+                        elif cb == self.sensor_checkbox_5:
+                            self.silver_entry_sensor.set("off")
+                if checkbox == self.sensor_checkbox_1:
+                    if (self.iron_entry_sensor.get() == self.copper_entry_sensor.get() == self.plat_entry_sensor.get()
+                            == self.silver_entry_sensor.get() == "off"):
+                        self.gold_entry_sensor.set("on")
+                elif checkbox == self.sensor_checkbox_2:
+                    if (self.gold_entry_sensor.get() == self.copper_entry_sensor.get() == self.plat_entry_sensor.get()
+                            == self.silver_entry_sensor.get() == "off"):
+                        self.iron_entry_sensor.set("on")
+                elif checkbox == self.sensor_checkbox_3:
+                    if (self.gold_entry_sensor.get() == self.iron_entry_sensor.get() == self.plat_entry_sensor.get()
+                            == self.silver_entry_sensor.get() == "off"):
+                        self.copper_entry_sensor.set("on")
+                elif checkbox == self.sensor_checkbox_4:
+                    if (self.gold_entry_sensor.get() == self.iron_entry_sensor.get() == self.copper_entry_sensor.get()
+                            == self.silver_entry_sensor.get() == "off"):
+                        self.plat_entry_sensor.set("on")
+                elif checkbox == self.sensor_checkbox_5:
+                    if (self.gold_entry_sensor.get() == self.iron_entry_sensor.get() == self.copper_entry_sensor.get()
+                            == self.plat_entry_sensor.get() == "off"):
+                        self.silver_entry_sensor.set("on")
 
             font_name = ("Roboto", 12)
             self.title("CustomTkinter learning")
@@ -809,19 +868,19 @@ class Graphic:
 
             self.textbox_n1 = ctk.CTkTextbox(self.tabview.tab("n1"), width=250)
             self.textbox_n1.grid(padx=0, pady=0, sticky="w")
-            self.textbox_n1.insert("0.0", "n1 is the refraction indice of the substrate, which is a glass")
+            self.textbox_n1.insert("0.0", "n1 is the refraction ind-ice of the substrate, which is a glass")
 
             self.textbox_n2 = ctk.CTkTextbox(self.tabview.tab("n2"), width=250)
             self.textbox_n2.grid(padx=0, pady=0)
             self.textbox_n2.insert("0.0",
-                                   "n2 is the refraction indice of the film, which is "
-                                   "an association of an Host and nanoparticules of a Metal")
+                                   "n2 is the refraction ind-ice of the film, which is "
+                                   "an association of an Host and nano-part-icu-les of a Metal")
 
             self.textbox_n3 = ctk.CTkTextbox(self.tabview.tab("n3"), width=250)
             self.textbox_n3.grid(padx=0, pady=0)
             self.textbox_n3.insert("0.0",
                                    "n3 is the refraction indic e of the ambient space, which is "
-                                   "beetween air and water, squale with humidity")
+                                   "beet-ween air and water, squ-ale with humidity")
 
             self.textbox_f = ctk.CTkTextbox(self.tabview.tab("f"), width=250)
             self.textbox_f.grid(padx=0, pady=0)
@@ -834,11 +893,11 @@ class Graphic:
 
             self.textbox_TE = ctk.CTkTextbox(self.tabview.tab("TE"), width=250)
             self.textbox_TE.grid(padx=0, pady=0)
-            self.textbox_TE.insert("0.0", "TE is feur TE")
+            self.textbox_TE.insert("0.0", "TE is feu-r TE")
 
             self.textbox_TM = ctk.CTkTextbox(self.tabview.tab("TM"), width=250)
             self.textbox_TM.grid(padx=0, pady=0)
-            self.textbox_TM.insert("0.0", "TM is feur TM")
+            self.textbox_TM.insert("0.0", "TM is feu-r TM")
 
             self.tabview2 = ctk.CTkTabview(master=self.frame, height=400, width=700)
             self.tabview2.grid(row=3, column=0, columnspan=8, padx=50, pady=25, sticky="nsew")
@@ -868,42 +927,30 @@ class Graphic:
             self.plat_entry_color = ctk.StringVar(value="off")
             self.silver_entry_color = ctk.StringVar(value="off")
 
-            def checkbox_clicked_color(checkbox):
-                if checkbox == self.color_checkbox_1:
-                    if self.iron_entry_color.get() == self.copper_entry_color.get() == self.plat_entry_color.get() == self.silver_entry_color.get() == "off":
-                        self.gold_entry_color.set("on")
-                elif checkbox == self.color_checkbox_2:
-                    if self.gold_entry_color.get() == self.copper_entry_color.get() == self.plat_entry_color.get() == self.silver_entry_color.get() == "off":
-                        self.iron_entry_color.set("on")
-                elif checkbox == self.color_checkbox_3:
-                    if self.gold_entry_color.get() == self.iron_entry_color.get() == self.plat_entry_color.get() == self.silver_entry_color.get() == "off":
-                        self.copper_entry_color.set("on")
-                elif checkbox == self.color_checkbox_4:
-                    if self.gold_entry_color.get() == self.iron_entry_color.get() == self.copper_entry_color.get() == self.silver_entry_color.get() == "off":
-                        self.plat_entry_color.set("on")
-                elif checkbox == self.color_checkbox_5:
-                    if self.gold_entry_color.get() == self.iron_entry_color.get() == self.copper_entry_color.get() == self.plat_entry_color.get() == "off":
-                        self.silver_entry_color.set("on")
-
             self.color_checkbox_1 = ctk.CTkCheckBox(self.tabview2.tab("Color in Thin glass"), text="Gold",
                                                     command=lambda: checkbox_clicked_color(self.color_checkbox_1),
-                                                    variable=self.gold_entry_color, onvalue="on", offvalue="off", width=80)
+                                                    variable=self.gold_entry_color, onvalue="on", offvalue="off",
+                                                    width=80)
             self.color_checkbox_1.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
             self.color_checkbox_2 = ctk.CTkCheckBox(self.tabview2.tab("Color in Thin glass"), text="Iron",
                                                     command=lambda: checkbox_clicked_color(self.color_checkbox_2),
-                                                    variable=self.iron_entry_color, onvalue="on", offvalue="off", width=80)
+                                                    variable=self.iron_entry_color, onvalue="on", offvalue="off",
+                                                    width=80)
             self.color_checkbox_2.grid(row=1, column=2, padx=10, pady=10, sticky="nsew")
             self.color_checkbox_3 = ctk.CTkCheckBox(self.tabview2.tab("Color in Thin glass"), text="Copper",
                                                     command=lambda: checkbox_clicked_color(self.color_checkbox_3),
-                                                    variable=self.copper_entry_color, onvalue="on", offvalue="off", width=80)
+                                                    variable=self.copper_entry_color, onvalue="on", offvalue="off",
+                                                    width=80)
             self.color_checkbox_3.grid(row=1, column=3, padx=10, pady=10, sticky="nsew")
             self.color_checkbox_4 = ctk.CTkCheckBox(self.tabview2.tab("Color in Thin glass"), text="plat",
                                                     command=lambda: checkbox_clicked_color(self.color_checkbox_4),
-                                                    variable=self.plat_entry_color, onvalue="on", offvalue="off", width=80)
+                                                    variable=self.plat_entry_color, onvalue="on", offvalue="off",
+                                                    width=80)
             self.color_checkbox_4.grid(row=1, column=4, padx=10, pady=10, sticky="nsew")
             self.color_checkbox_5 = ctk.CTkCheckBox(self.tabview2.tab("Color in Thin glass"), text="Silver",
                                                     command=lambda: checkbox_clicked_color(self.color_checkbox_5),
-                                                    variable=self.silver_entry_color, onvalue="on", offvalue="off", width=80)
+                                                    variable=self.silver_entry_color, onvalue="on", offvalue="off",
+                                                    width=80)
             self.color_checkbox_5.grid(row=1, column=5, padx=10, pady=10, sticky="nsew")
 
             self.tabview3 = ctk.CTkTabview(self.tabview2.tab("Color in Thin glass"), height=100, width=300)
@@ -918,8 +965,7 @@ class Graphic:
             self.label.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
             self.color_checkbox_value_d = ctk.CTkOptionMenu(self.tabview3.tab("f variations"),
-                                                      values=["1000", "10000", "100000"],
-                                                      width=100)
+                                                            values=["1000", "10000", "100000"], width=100)
             self.color_checkbox_value_d.grid(row=0, column=1, padx=0, pady=10, sticky="nsew")
 
             self.label = ctk.CTkLabel(self.tabview3.tab("f variations"), text="μm", font=font_name, width=80)
@@ -929,19 +975,19 @@ class Graphic:
             self.label.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
             self.color_checkbox_value_f = ctk.CTkOptionMenu(self.tabview3.tab("d variations"),
-                                                      values=["0.0000001", "0.000001", "0.00001", "0.0001", "0.001"],
-                                                      width=100)
+                                                            values=["0.0000001", "0.000001", "0.00001", "0.0001",
+                                                                    "0.001"], width=100)
             self.color_checkbox_value_f.grid(row=0, column=1, padx=0, pady=10, sticky="nsew")
 
             self.label = ctk.CTkLabel(self.tabview3.tab("d variations"), text="", font=font_name, width=80)
             self.label.grid(row=0, column=2, padx=10, pady=10, sticky="nsew")
 
             self.button_color_calcul = ctk.CTkButton(self.tabview2.tab("Color in Thin glass"), text="Calcul", width=80,
-                                                     command=on_button_click)
+                                                     command=calcul_button_click)
             self.button_color_calcul.grid(row=3, column=0, pady=10, padx=10, sticky="nsew")
 
             self.button_color_print = ctk.CTkButton(self.tabview2.tab("Color in Thin glass"), text="Print", width=80,
-                                                    command=on_button_click2)
+                                                    command=print_button_click)
             self.button_color_print.grid(row=3, column=6, pady=10, padx=10, sticky="nsew")
 
             self.label_color_substrate = ctk.CTkLabel(self.tabview2.tab("Sensor"), text="Substrate :", font=font_name,
@@ -970,41 +1016,30 @@ class Graphic:
             self.plat_entry_sensor = ctk.StringVar(value="off")
             self.silver_entry_sensor = ctk.StringVar(value="off")
 
-            def checkbox_clicked(checkbox):
-                checkboxes = [self.sensor_checkbox_1, self.sensor_checkbox_2, self.sensor_checkbox_3,
-                              self.sensor_checkbox_4, self.sensor_checkbox_5]
-                for cb in checkboxes:
-                    if cb != checkbox:
-                        if cb == self.sensor_checkbox_1:
-                            self.gold_entry_sensor.set("off")
-                        elif cb == self.sensor_checkbox_2:
-                            self.iron_entry_sensor.set("off")
-                        elif cb == self.sensor_checkbox_3:
-                            self.copper_entry_sensor.set("off")
-                        elif cb == self.sensor_checkbox_4:
-                            self.plat_entry_sensor.set("off")
-                        elif cb == self.sensor_checkbox_5:
-                            self.silver_entry_sensor.set("off")
-
             self.sensor_checkbox_1 = ctk.CTkCheckBox(self.tabview2.tab("Sensor"), text="Gold",
                                                      command=lambda: checkbox_clicked(self.sensor_checkbox_1),
-                                                     variable=self.gold_entry_sensor, onvalue="on", offvalue="off", width=80)
+                                                     variable=self.gold_entry_sensor, onvalue="on", offvalue="off",
+                                                     width=80)
             self.sensor_checkbox_1.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
             self.sensor_checkbox_2 = ctk.CTkCheckBox(self.tabview2.tab("Sensor"), text="Iron",
                                                      command=lambda: checkbox_clicked(self.sensor_checkbox_2),
-                                                     variable=self.iron_entry_sensor, onvalue="on", offvalue="off", width=80)
+                                                     variable=self.iron_entry_sensor, onvalue="on", offvalue="off",
+                                                     width=80)
             self.sensor_checkbox_2.grid(row=1, column=2, padx=10, pady=10, sticky="nsew")
             self.sensor_checkbox_3 = ctk.CTkCheckBox(self.tabview2.tab("Sensor"), text="Copper",
                                                      command=lambda: checkbox_clicked(self.sensor_checkbox_3),
-                                                     variable=self.copper_entry_sensor, onvalue="on", offvalue="off", width=80)
+                                                     variable=self.copper_entry_sensor, onvalue="on", offvalue="off",
+                                                     width=80)
             self.sensor_checkbox_3.grid(row=1, column=3, padx=10, pady=10, sticky="nsew")
             self.sensor_checkbox_4 = ctk.CTkCheckBox(self.tabview2.tab("Sensor"), text="Plat",
                                                      command=lambda: checkbox_clicked(self.sensor_checkbox_4),
-                                                     variable=self.plat_entry_sensor, onvalue="on", offvalue="off", width=80)
+                                                     variable=self.plat_entry_sensor, onvalue="on", offvalue="off",
+                                                     width=80)
             self.sensor_checkbox_4.grid(row=1, column=4, padx=10, pady=10, sticky="nsew")
             self.sensor_checkbox_5 = ctk.CTkCheckBox(self.tabview2.tab("Sensor"), text="Silver",
                                                      command=lambda: checkbox_clicked(self.sensor_checkbox_5),
-                                                     variable=self.silver_entry_sensor, onvalue="on", offvalue="off", width=80)
+                                                     variable=self.silver_entry_sensor, onvalue="on", offvalue="off",
+                                                     width=80)
             self.sensor_checkbox_5.grid(row=1, column=5, padx=10, pady=10, sticky="nsew")
 
             self.tabview4 = ctk.CTkTabview(self.tabview2.tab("Sensor"), height=150, width=399)
@@ -1067,8 +1102,7 @@ class Graphic:
             self.label.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
             self.sensor_checkbox_n3_f = ctk.CTkOptionMenu(self.tabview4.tab("n3 variations"),
-                                                         values=["0.01", "0.03", "0.05", "0.07", "0.09"],
-                                                         width=113)
+                                                          values=["0.01", "0.03", "0.05", "0.07", "0.09"], width=113)
             self.sensor_checkbox_n3_f.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
 
             self.label = ctk.CTkLabel(self.tabview4.tab("n3 variations"), text="", font=font_name, width=113)
@@ -1078,7 +1112,7 @@ class Graphic:
             self.label.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
 
             self.sensor_checkbox_n3_d = ctk.CTkOptionMenu(self.tabview4.tab("n3 variations"),
-                                                           values=["0.020", "0.080", "0.140"], width=113)
+                                                          values=["0.020", "0.080", "0.140"], width=113)
             self.sensor_checkbox_n3_d.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
 
             self.label = ctk.CTkLabel(self.tabview4.tab("n3 variations"), text="μm", font=font_name, width=113)
@@ -1112,21 +1146,24 @@ class Graphic:
             self.check_circle = ctk.StringVar(value="off")
 
             self.sensor_checkbox_11 = ctk.CTkCheckBox(self.tabview2.tab("Sensor"), text="Reflexion",
-                                                      variable=self.check_reflexion, onvalue="on", offvalue="off", width=100)
+                                                      variable=self.check_reflexion, onvalue="on", offvalue="off",
+                                                      width=100)
             self.sensor_checkbox_11.grid(row=3, column=2, padx=0, pady=10, sticky="nsew")
 
             self.sensor_checkbox_22 = ctk.CTkCheckBox(self.tabview2.tab("Sensor"), text="Transmittance",
-                                                      variable=self.check_transmission, onvalue="on", offvalue="off", width=100)
+                                                      variable=self.check_transmission, onvalue="on", offvalue="off",
+                                                      width=100)
             self.sensor_checkbox_22.grid(row=3, column=3, padx=0, pady=10, sticky="nsew")
 
             self.sensor_checkbox_3 = ctk.CTkCheckBox(self.tabview2.tab("Sensor"), text="Color Circle",
-                                                     variable=self.check_circle, onvalue="on", offvalue="off", width=100)
+                                                     variable=self.check_circle, onvalue="on", offvalue="off",
+                                                     width=100)
             self.sensor_checkbox_3.grid(row=3, column=4, padx=0, pady=10, sticky="nsew")
 
             self.button_sensor_calcul = ctk.CTkButton(self.tabview2.tab("Sensor"), text="Calcul", width=80,
-                                                      command=on_button_click)
+                                                      command=calcul_button_click)
             self.button_sensor_calcul.grid(row=4, column=0, pady=0, padx=10, sticky="w")
 
             self.button_sensor_print = ctk.CTkButton(self.tabview2.tab("Sensor"), text="Print", width=80,
-                                                     command=on_button_click2)
+                                                     command=print_button_click)
             self.button_sensor_print.grid(row=4, column=6, pady=0, padx=10, sticky="w")
