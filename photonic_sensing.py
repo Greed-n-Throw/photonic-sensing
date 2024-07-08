@@ -16,8 +16,8 @@ from PIL import Image, ImageTk
 class ConstVal:
     @staticmethod
     def set_list() -> Tuple[List[float], List[float], List[float], List[float], List[float], List[float]]:
-        f_i_l = list(np.linspace(0.000001, 0.0001, 11))
-        d_i_l = list(np.linspace(100, 10000, 11))
+        f_i_l = list(np.linspace(0.0000001, 0.0001, 21))
+        d_i_l = list(np.linspace(100, 10000, 21))
         f_r_l = list(np.linspace(0.01, 0.09, 9))
         d_r_l = list(np.linspace(0.020, 0.140, 13))
         d_dr_l = list(np.linspace(0.020, 0.140, 121))
@@ -778,6 +778,7 @@ class Graphic:
                                                None,
                                                None,
                                                self.calcul_type,
+                                               None,
                                                None,
                                                None
                                                )
