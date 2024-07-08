@@ -369,8 +369,8 @@ class Calculation:
                 t_21: List[float] = [(1 + x) for x in r_21]
                 t_12: List[float] = [(1 + x) for x in r_12]
                 t_23: List[float] = [(1 + x) for x in r_23]
-                e: List[complex] = [cmath.exp(2j * x * (1/y) * d_val) for x, y in zip(k0_l, n_l)]
-                e_1: List[complex] = [cmath.exp(1j * x * (1/y) * d_val) for x, y in zip(k0_l, n_l)]
+                e: List[complex] = [cmath.exp(2j * x * y * d_val) for x, y in zip(k0_l, n_l)]
+                e_1: List[complex] = [cmath.exp(1j * x * y * d_val) for x, y in zip(k0_l, n_l)]
 
                 r: List[float] = [((r1 + ((t1 * r2 * t2) * e2)) / (1 - (r3 * r2) * e2)) for r1, r2, r3, t1, t2, e2 in
                                   zip(
@@ -423,8 +423,8 @@ class Calculation:
             r_21: List[float] = [(1/x - 1/y) / (1/x + 1/y) for x, y in zip(n_eff_l, dataset_l)]
             t_21: List[float] = [(1 + x) for x in r_21]
 
-            e: List[complex] = [cmath.exp(2j * x * (1/y) * d_val) for x, y in zip(k0_l, n_eff_l)]
-            e_1: List[complex] = [cmath.exp(1j * x * (1/y) * d_val) for x, y in zip(k0_l, n_eff_l)]
+            e: List[complex] = [cmath.exp(2j * x * y * d_val) for x, y in zip(k0_l, n_eff_l)]
+            e_1: List[complex] = [cmath.exp(1j * x * y * d_val) for x, y in zip(k0_l, n_eff_l)]
 
             for n_3_val in n_3_l:
                 r_23: List[float] = [(1/x + (-1/n_3_val)) / (1/x + 1/n_3_val) for x in n_eff_l]
@@ -486,8 +486,8 @@ class Calculation:
             t_23: List[float] = [(1 + x) for x in r_23]
 
             for d_val in d_l:
-                e: List[complex] = [cmath.exp(2j * x * (1/y) * d_val) for x, y in zip(k0_l, n_eff_l)]
-                e_1: List[complex] = [cmath.exp(1j * x * (1/y) * d_val) for x, y in zip(k0_l, n_eff_l)]
+                e: List[complex] = [cmath.exp(2j * x * y * d_val) for x, y in zip(k0_l, n_eff_l)]
+                e_1: List[complex] = [cmath.exp(1j * x * y * d_val) for x, y in zip(k0_l, n_eff_l)]
 
                 r: List[float] = [((r1 + ((t1 * r2 * t2) * e2)) / (1 - (r3 * r2) * e2)) for r1, r2, r3, t1, t2, e2 in
                                   zip(
