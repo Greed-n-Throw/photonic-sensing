@@ -336,144 +336,254 @@ class Calculation:
 
     @staticmethod
     def reflexion_f(n_3_val: float, f_l: List[float], epsilon_h_l: List[float], eta_l: List[float],
-                    dataset_l: List[float], k0_l: List[float], d_val: float) \
+                    dataset_l: List[float], k0_l: List[float], d_val: float, t_val: str) \
             -> Tuple[List[List[float]], List[List[float]]]:
         rr_f_ll: List[List[float]] = []
         tt_f_ll: List[List[float]] = []
         n_eff_ll: List[List[float]] = Calculation.n_eff_calc(f_l, epsilon_h_l, eta_l)
         for n_l in n_eff_ll:
-            r_21: List[float] = [(x - y) / (x + y) for x, y in zip(n_l, dataset_l)]
-            t_21: List[float] = [(1 + x) for x in r_21]
+            if t_val == "TE":
+                r_21: List[float] = [(x - y) / (x + y) for x, y in zip(n_l, dataset_l)]
+                r_12: List[float] = [(y - x) / (x + y) for x, y in zip(n_l, dataset_l)]
+                r_23: List[float] = [(x - n_3_val) / (x + n_3_val) for x in n_l]
+                t_21: List[float] = [(1 + x) for x in r_21]
+                t_12: List[float] = [(1 + x) for x in r_12]
+                t_23: List[float] = [(1 + x) for x in r_23]
+                e: List[complex] = [cmath.exp(2j * x * y * d_val) for x, y in zip(k0_l, n_l)]
+                e_1: List[complex] = [cmath.exp(1j * x * y * d_val) for x, y in zip(k0_l, n_l)]
 
-            r_12: List[float] = [(y - x) / (x + y) for x, y in zip(n_l, dataset_l)]
-            t_12: List[float] = [(1 + x) for x in r_12]
+                r: List[float] = [((r1 + ((t1 * r2 * t2) * e2)) / (1 - (r3 * r2) * e2)) for r1, r2, r3, t1, t2, e2 in
+                                  zip(
+                                      r_12, r_23, r_21, t_12, t_21, e)]
+                rr_l: List[float] = [abs(x) * abs(x) for x in r]
+                rr_f_ll.append(rr_l)
 
-            e: List[complex] = [cmath.exp(2j * x * y * d_val) for x, y in zip(k0_l, n_l)]
-            e_1: List[complex] = [cmath.exp(1j * x * y * d_val) for x, y in zip(k0_l, n_l)]
+                t: List[float] = [((t1 * t2) * e1) / (1 - (r3 * r2) * e2) for r2, r3, t1, t2, e1, e2 in zip(
+                    r_23, r_21, t_21, t_23, e_1, e)]
+                tt_l: List[float] = [abs(x) * abs(x) * n_3_val * n_3_val / (y * y) for x, y in zip(t, n_l)]
+                tt_f_ll.append(tt_l)
+            elif t_val == "TM":
+                r_21: List[float] = [(1/x - 1/y) / (1/x + 1/y) for x, y in zip(n_l, dataset_l)]
+                r_12: List[float] = [(1/y - 1/x) / (1/x + 1/y) for x, y in zip(n_l, dataset_l)]
+                r_23: List[float] = [(1/x - 1/n_3_val) / (1/x + 1/n_3_val) for x in n_l]
+                t_21: List[float] = [(1 + x) for x in r_21]
+                t_12: List[float] = [(1 + x) for x in r_12]
+                t_23: List[float] = [(1 + x) for x in r_23]
+                e: List[complex] = [cmath.exp(2j * x * (1/y) * d_val) for x, y in zip(k0_l, n_l)]
+                e_1: List[complex] = [cmath.exp(1j * x * (1/y) * d_val) for x, y in zip(k0_l, n_l)]
 
-            r_23: List[float] = [(x - n_3_val) / (x + n_3_val) for x in n_l]
-            t_23: List[float] = [(1 + x) for x in r_23]
+                r: List[float] = [((r1 + ((t1 * r2 * t2) * e2)) / (1 - (r3 * r2) * e2)) for r1, r2, r3, t1, t2, e2 in
+                                  zip(
+                                      r_12, r_23, r_21, t_12, t_21, e)]
+                rr_l: List[float] = [abs(x) * abs(x) for x in r]
+                rr_f_ll.append(rr_l)
 
-            r: List[float] = [((r1 + ((t1 * r2 * t2) * e2)) / (1 - (r3 * r2) * e2)) for r1, r2, r3, t1, t2, e2 in zip(
-                r_12, r_23, r_21, t_12, t_21, e)]
-            rr_l: List[float] = [abs(x) * abs(x) for x in r]
-            rr_f_ll.append(rr_l)
-
-            t: List[float] = [((t1 * t2) * e1) / (1 - (r3 * r2) * e2) for r2, r3, t1, t2, e1, e2 in zip(
-                r_23, r_21, t_21, t_23, e_1, e)]
-            tt_l: List[float] = [abs(x) * abs(x) * n_3_val * n_3_val / (y * y) for x, y in zip(t, n_l)]
-            tt_f_ll.append(tt_l)
+                t: List[float] = [((t1 * t2) * e1) / (1 - (r3 * r2) * e2) for r2, r3, t1, t2, e1, e2 in zip(
+                    r_23, r_21, t_21, t_23, e_1, e)]
+                tt_l: List[float] = [abs(x) * abs(x) * n_3_val * n_3_val / (y * y) for x, y in zip(t, n_l)]
+                tt_f_ll.append(tt_l)
         return rr_f_ll, tt_f_ll
 
     @staticmethod
     def reflexion_n_3(n_3_l: list, f_val: float, epsilon_h_l: list, eta_l: list, dataset_l: list, k0_l: list,
-                      d_val: float) -> Tuple[List[List[float]], List[List[float]]]:
+                      d_val: float, t_val: str) -> Tuple[List[List[float]], List[List[float]]]:
         rr_n_3_ll: List[List[float]] = []
         tt_n3_ll: List[List[float]] = []
         n_eff_ll: List[List[float]] = Calculation.n_eff_calc([f_val], epsilon_h_l, eta_l)
         n_eff_l: List[float] = n_eff_ll[0]
 
-        r_12: List[float] = [(y - x) / (x + y) for x, y in zip(n_eff_l, dataset_l)]
-        t_12: List[float] = [(1 + x) for x in r_12]
+        if t_val == "TE":
+            r_12: List[float] = [(y - x) / (x + y) for x, y in zip(n_eff_l, dataset_l)]
+            t_12: List[float] = [(1 + x) for x in r_12]
 
-        r_21: List[float] = [(x - y) / (x + y) for x, y in zip(n_eff_l, dataset_l)]
-        t_21: List[float] = [(1 + x) for x in r_21]
+            r_21: List[float] = [(x - y) / (x + y) for x, y in zip(n_eff_l, dataset_l)]
+            t_21: List[float] = [(1 + x) for x in r_21]
 
-        e: List[complex] = [cmath.exp(2j * x * y * d_val) for x, y in zip(k0_l, n_eff_l)]
-        e_1: List[complex] = [cmath.exp(1j * x * y * d_val) for x, y in zip(k0_l, n_eff_l)]
+            e: List[complex] = [cmath.exp(2j * x * y * d_val) for x, y in zip(k0_l, n_eff_l)]
+            e_1: List[complex] = [cmath.exp(1j * x * y * d_val) for x, y in zip(k0_l, n_eff_l)]
 
-        for n_3_val in n_3_l:
-            r_23: List[float] = [(x + (-n_3_val)) / (x + n_3_val) for x in n_eff_l]
-            t_23: List[float] = [(1 + x) for x in r_23]
+            for n_3_val in n_3_l:
+                r_23: List[float] = [(x + (-n_3_val)) / (x + n_3_val) for x in n_eff_l]
+                t_23: List[float] = [(1 + x) for x in r_23]
 
-            r: List[float] = [((r1 + ((t1 * r2 * t2) * e2)) / (1 - (r3 * r2) * e2)) for r1, r2, r3, t1, t2, e2 in zip(
-                r_12, r_23, r_21, t_12, t_21, e)]
-            rr_l: List[float] = [abs(x) * abs(x) for x in r]
-            rr_n_3_ll.append(rr_l)
+                r: List[float] = [((r1 + ((t1 * r2 * t2) * e2)) / (1 - (r3 * r2) * e2)) for r1, r2, r3, t1, t2, e2 in zip(
+                    r_12, r_23, r_21, t_12, t_21, e)]
+                rr_l: List[float] = [abs(x) * abs(x) for x in r]
+                rr_n_3_ll.append(rr_l)
 
-            t: List[float] = [((t1 * t2) * e1) / (1 - (r3 * r2) * e2) for r2, r3, t1, t2, e1, e2 in zip(
-                r_23, r_21, t_21, t_23, e_1, e)]
-            tt_l: List[float] = [abs(x) * abs(x) * n_3_val * n_3_val / (y * y) for x, y in zip(t, n_eff_l)]
-            tt_n3_ll.append(tt_l)
+                t: List[float] = [((t1 * t2) * e1) / (1 - (r3 * r2) * e2) for r2, r3, t1, t2, e1, e2 in zip(
+                    r_23, r_21, t_21, t_23, e_1, e)]
+                tt_l: List[float] = [abs(x) * abs(x) * n_3_val * n_3_val / (y * y) for x, y in zip(t, n_eff_l)]
+                tt_n3_ll.append(tt_l)
+
+        elif t_val == "TM":
+            r_12: List[float] = [(1/y - 1/x) / (1/x + 1/y) for x, y in zip(n_eff_l, dataset_l)]
+            t_12: List[float] = [(1 + x) for x in r_12]
+
+            r_21: List[float] = [(1/x - 1/y) / (1/x + 1/y) for x, y in zip(n_eff_l, dataset_l)]
+            t_21: List[float] = [(1 + x) for x in r_21]
+
+            e: List[complex] = [cmath.exp(2j * x * (1/y) * d_val) for x, y in zip(k0_l, n_eff_l)]
+            e_1: List[complex] = [cmath.exp(1j * x * (1/y) * d_val) for x, y in zip(k0_l, n_eff_l)]
+
+            for n_3_val in n_3_l:
+                r_23: List[float] = [(1/x + (-1/n_3_val)) / (1/x + 1/n_3_val) for x in n_eff_l]
+                t_23: List[float] = [(1 + x) for x in r_23]
+
+                r: List[float] = [((r1 + ((t1 * r2 * t2) * e2)) / (1 - (r3 * r2) * e2)) for r1, r2, r3, t1, t2, e2 in
+                                  zip(
+                                      r_12, r_23, r_21, t_12, t_21, e)]
+                rr_l: List[float] = [abs(x) * abs(x) for x in r]
+                rr_n_3_ll.append(rr_l)
+
+                t: List[float] = [((t1 * t2) * e1) / (1 - (r3 * r2) * e2) for r2, r3, t1, t2, e1, e2 in zip(
+                    r_23, r_21, t_21, t_23, e_1, e)]
+                tt_l: List[float] = [abs(x) * abs(x) * n_3_val * n_3_val / (y * y) for x, y in zip(t, n_eff_l)]
+                tt_n3_ll.append(tt_l)
 
         return rr_n_3_ll, tt_n3_ll
 
     @staticmethod
     def reflexion_d(n_3_val: float, f_val: float, epsilon_h_l: List[float], eta_l: List[float], dataset_l: List[float],
-                    k0_l: List[float], d_l: List[float]) -> Tuple[List[List[float]], List[List[float]]]:
+                    k0_l: List[float], d_l: List[float], t_val: str) -> Tuple[List[List[float]], List[List[float]]]:
         rr_d_ll: List[List[float]] = []
         tt_d_ll: List[List[float]] = []
         n_eff_ll: List[List[float]] = Calculation.n_eff_calc([f_val], epsilon_h_l, eta_l)
         n_eff_l: List[float] = n_eff_ll[0]
 
-        r_12: List[float] = [(y - x) / (x + y) for x, y in zip(n_eff_l, dataset_l)]
-        t_12: List[float] = [(1 + x) for x in r_12]
+        if t_val == "TE":
+            r_12: List[float] = [(y - x) / (x + y) for x, y in zip(n_eff_l, dataset_l)]
+            t_12: List[float] = [(1 + x) for x in r_12]
 
-        r_21: List[float] = [(x - y) / (x + y) for x, y in zip(n_eff_l, dataset_l)]
-        t_21: List[float] = [(1 + x) for x in r_21]
+            r_21: List[float] = [(x - y) / (x + y) for x, y in zip(n_eff_l, dataset_l)]
+            t_21: List[float] = [(1 + x) for x in r_21]
 
-        r_23: List[float] = [(x + (-n_3_val)) / (x + n_3_val) for x in n_eff_l]
-        t_23: List[float] = [(1 + x) for x in r_23]
+            r_23: List[float] = [(x + (-n_3_val)) / (x + n_3_val) for x in n_eff_l]
+            t_23: List[float] = [(1 + x) for x in r_23]
 
-        for d_val in d_l:
-            e: List[complex] = [cmath.exp(2j * x * y * d_val) for x, y in zip(k0_l, n_eff_l)]
-            e_1: List[complex] = [cmath.exp(1j * x * y * d_val) for x, y in zip(k0_l, n_eff_l)]
+            for d_val in d_l:
+                e: List[complex] = [cmath.exp(2j * x * y * d_val) for x, y in zip(k0_l, n_eff_l)]
+                e_1: List[complex] = [cmath.exp(1j * x * y * d_val) for x, y in zip(k0_l, n_eff_l)]
 
-            r: List[float] = [((r1 + ((t1 * r2 * t2) * e2)) / (1 - (r3 * r2) * e2)) for r1, r2, r3, t1, t2, e2 in zip(
-                r_12, r_23, r_21, t_12, t_21, e)]
-            rr_l: List[float] = [abs(x) * abs(x) for x in r]
-            rr_d_ll.append(rr_l)
+                r: List[float] = [((r1 + ((t1 * r2 * t2) * e2)) / (1 - (r3 * r2) * e2)) for r1, r2, r3, t1, t2, e2 in zip(
+                    r_12, r_23, r_21, t_12, t_21, e)]
+                rr_l: List[float] = [abs(x) * abs(x) for x in r]
+                rr_d_ll.append(rr_l)
 
-            t: List[float] = [((t1 * t2) * e1) / (1 - (r3 * r2) * e2) for r2, r3, t1, t2, e1, e2 in zip(
-                r_23, r_21, t_21, t_23, e_1, e)]
-            tt_l: List[float] = [abs(x) * abs(x) * n_3_val * n_3_val / (y * y) for x, y in zip(t, n_eff_l)]
-            tt_d_ll.append(tt_l)
+                t: List[float] = [((t1 * t2) * e1) / (1 - (r3 * r2) * e2) for r2, r3, t1, t2, e1, e2 in zip(
+                    r_23, r_21, t_21, t_23, e_1, e)]
+                tt_l: List[float] = [abs(x) * abs(x) * n_3_val * n_3_val / (y * y) for x, y in zip(t, n_eff_l)]
+                tt_d_ll.append(tt_l)
 
-        return rr_d_ll, tt_d_ll,
+        elif t_val == "TM":
+            r_12: List[float] = [(1/y - 1/x) / (1/x + 1/y) for x, y in zip(n_eff_l, dataset_l)]
+            t_12: List[float] = [(1 + x) for x in r_12]
+
+            r_21: List[float] = [(1/x - 1/y) / (1/x + 1/y) for x, y in zip(n_eff_l, dataset_l)]
+            t_21: List[float] = [(1 + x) for x in r_21]
+
+            r_23: List[float] = [(1/x + (-1/n_3_val)) / (1/x + 1/n_3_val) for x in n_eff_l]
+            t_23: List[float] = [(1 + x) for x in r_23]
+
+            for d_val in d_l:
+                e: List[complex] = [cmath.exp(2j * x * (1/y) * d_val) for x, y in zip(k0_l, n_eff_l)]
+                e_1: List[complex] = [cmath.exp(1j * x * (1/y) * d_val) for x, y in zip(k0_l, n_eff_l)]
+
+                r: List[float] = [((r1 + ((t1 * r2 * t2) * e2)) / (1 - (r3 * r2) * e2)) for r1, r2, r3, t1, t2, e2 in
+                                  zip(
+                                      r_12, r_23, r_21, t_12, t_21, e)]
+                rr_l: List[float] = [abs(x) * abs(x) for x in r]
+                rr_d_ll.append(rr_l)
+
+                t: List[float] = [((t1 * t2) * e1) / (1 - (r3 * r2) * e2) for r2, r3, t1, t2, e1, e2 in zip(
+                    r_23, r_21, t_21, t_23, e_1, e)]
+                tt_l: List[float] = [abs(x) * abs(x) * n_3_val * n_3_val / (y * y) for x, y in zip(t, n_eff_l)]
+                tt_d_ll.append(tt_l)
+
+        return rr_d_ll, tt_d_ll
 
     @staticmethod
     def dynamic_range(f_l: List[float], epsilon_h_l: List[float], eta_l: List[float], dataset_l: List[float],
-                      k0_l: List[float], d_l: List[float]) -> Tuple[List[List[float]], List[List[float]]]:
+                      k0_l: List[float], d_l: List[float], t_val: str) -> Tuple[List[List[float]], List[List[float]]]:
         n_eff_ll: List[List[float]] = Calculation.n_eff_calc(f_l, epsilon_h_l, eta_l)
         crb_i_ll: List[List[float]] = []
         crb_w_ll: List[List[float]] = []
 
-        for i in range(len(f_l)):
-            u: float = int(i / (len(f_l) + 1) * 1000) / 10
-            print(str(str(u) + '%'))
-            r_21: List[float] = [(x - y) / (x + y) for x, y in zip(n_eff_ll[i], dataset_l)]
-            r_12: List[float] = [(y - x) / (x + y) for x, y in zip(n_eff_ll[i], dataset_l)]
-            t_12: List[float] = [(1 + x) for x in r_12]
-            t_21: List[float] = [(1 + x) for x in r_21]
-            r_23_133: List[float] = [(x - 1.33) / (x + 1.33) for x in n_eff_ll[i]]
-            r_23_100: List[float] = [(x - 1) / (x + 1) for x in n_eff_ll[i]]
+        if t_val == "TE":
+            for i in range(len(f_l)):
+                u: float = int(i / (len(f_l) + 1) * 1000) / 10
+                print(str(str(u) + '%'))
+                r_21: List[float] = [(x - y) / (x + y) for x, y in zip(n_eff_ll[i], dataset_l)]
+                r_12: List[float] = [(y - x) / (x + y) for x, y in zip(n_eff_ll[i], dataset_l)]
+                t_12: List[float] = [(1 + x) for x in r_12]
+                t_21: List[float] = [(1 + x) for x in r_21]
+                r_23_133: List[float] = [(x - 1.33) / (x + 1.33) for x in n_eff_ll[i]]
+                r_23_100: List[float] = [(x - 1) / (x + 1) for x in n_eff_ll[i]]
 
-            crb_i_l: List[float] = []
-            crb_w_l: List[float] = []
-            for d_val in d_l:
-                e: List[complex] = [cmath.exp(2j * x * y * d_val) for x, y in zip(k0_l, n_eff_ll[i])]
+                crb_i_l: List[float] = []
+                crb_w_l: List[float] = []
+                for d_val in d_l:
+                    e: List[complex] = [cmath.exp(2j * x * y * d_val) for x, y in zip(k0_l, n_eff_ll[i])]
 
-                r_133: List[float] = [((x1 + ((y1 * x2 * y2) * z2)) / (1 - (x3 * x2) * z2)) for
-                                      x1, x2, x3, y1, y2, z2 in zip(r_12, r_23_133, r_21, t_12, t_21, e)]
-                rr_133_l: List[float] = [abs(x) * abs(x) for x in r_133]
-                maximum_133: float = max(rr_133_l)
+                    r_133: List[float] = [((x1 + ((y1 * x2 * y2) * z2)) / (1 - (x3 * x2) * z2)) for
+                                          x1, x2, x3, y1, y2, z2 in zip(r_12, r_23_133, r_21, t_12, t_21, e)]
+                    rr_133_l: List[float] = [abs(x) * abs(x) for x in r_133]
+                    maximum_133: float = max(rr_133_l)
 
-                r_100: List[float] = [((x1 + ((y1 * x2 * y2) * z2)) / (1 - (x3 * x2) * z2)) for
-                                      x1, x2, x3, y1, y2, z2 in zip(r_12, r_23_100, r_21, t_12, t_21, e)]
-                rr_100_l: List[float] = [abs(x) * abs(x) for x in r_100]
-                maximum_100: float = max(rr_100_l)
+                    r_100: List[float] = [((x1 + ((y1 * x2 * y2) * z2)) / (1 - (x3 * x2) * z2)) for
+                                          x1, x2, x3, y1, y2, z2 in zip(r_12, r_23_100, r_21, t_12, t_21, e)]
+                    rr_100_l: List[float] = [abs(x) * abs(x) for x in r_100]
+                    maximum_100: float = max(rr_100_l)
 
-                lambda_max_100 = 400 + 0.1 * rr_100_l.index(maximum_100)
-                lambda_max_133 = 400 + 0.1 * rr_133_l.index(maximum_133)
+                    lambda_max_100 = 400 + 0.1 * rr_100_l.index(maximum_100)
+                    lambda_max_133 = 400 + 0.1 * rr_133_l.index(maximum_133)
 
-                intensity_dynamic_range = 100 * (maximum_100 - maximum_133)
-                crb_i_l.append(intensity_dynamic_range)
+                    intensity_dynamic_range = 100 * (maximum_100 - maximum_133)
+                    crb_i_l.append(intensity_dynamic_range)
 
-                wavelength_dynamic_range = lambda_max_100 - lambda_max_133
-                crb_w_l.append(wavelength_dynamic_range)
+                    wavelength_dynamic_range = lambda_max_100 - lambda_max_133
+                    crb_w_l.append(wavelength_dynamic_range)
 
-            crb_i_ll.append(crb_i_l)
-            crb_w_ll.append(crb_w_l)
+                crb_i_ll.append(crb_i_l)
+                crb_w_ll.append(crb_w_l)
+
+        elif t_val == "TM":
+            for i in range(len(f_l)):
+                u: float = int(i / (len(f_l) + 1) * 1000) / 10
+                print(str(str(u) + '%'))
+                r_21: List[float] = [(1/x - 1/y) / (1/x + 1/y) for x, y in zip(n_eff_ll[i], dataset_l)]
+                r_12: List[float] = [(1/y - 1/x) / (1/x + 1/y) for x, y in zip(n_eff_ll[i], dataset_l)]
+                t_12: List[float] = [(1 + x) for x in r_12]
+                t_21: List[float] = [(1 + x) for x in r_21]
+                r_23_133: List[float] = [(1/x - 1/1.33) / (1/x + 1/1.33) for x in n_eff_ll[i]]
+                r_23_100: List[float] = [(1/x - 1) / (1/x + 1) for x in n_eff_ll[i]]
+
+                crb_i_l: List[float] = []
+                crb_w_l: List[float] = []
+                for d_val in d_l:
+                    e: List[complex] = [cmath.exp(2j * x * y * d_val) for x, y in zip(k0_l, n_eff_ll[i])]
+
+                    r_133: List[float] = [((x1 + ((y1 * x2 * y2) * z2)) / (1 - (x3 * x2) * z2)) for
+                                          x1, x2, x3, y1, y2, z2 in zip(r_12, r_23_133, r_21, t_12, t_21, e)]
+                    rr_133_l: List[float] = [abs(x) * abs(x) for x in r_133]
+                    maximum_133: float = max(rr_133_l)
+
+                    r_100: List[float] = [((x1 + ((y1 * x2 * y2) * z2)) / (1 - (x3 * x2) * z2)) for
+                                          x1, x2, x3, y1, y2, z2 in zip(r_12, r_23_100, r_21, t_12, t_21, e)]
+                    rr_100_l: List[float] = [abs(x) * abs(x) for x in r_100]
+                    maximum_100: float = max(rr_100_l)
+
+                    lambda_max_100 = 400 + 0.1 * rr_100_l.index(maximum_100)
+                    lambda_max_133 = 400 + 0.1 * rr_133_l.index(maximum_133)
+
+                    intensity_dynamic_range = 100 * (maximum_100 - maximum_133)
+                    crb_i_l.append(intensity_dynamic_range)
+
+                    wavelength_dynamic_range = lambda_max_100 - lambda_max_133
+                    crb_w_l.append(wavelength_dynamic_range)
+
+                crb_i_ll.append(crb_i_l)
+                crb_w_ll.append(crb_w_l)
 
         return crb_i_ll, crb_w_ll
 
@@ -481,7 +591,7 @@ class Calculation:
     def do_calculation(entry_start_s, entry_stop_s, entry_substrate_s, entry_host_s, entry_gold_s, entry_iron_s,
                        entry_copper_s, entry_plat_s, entry_silver_s, entry_f_s, entry_d_s, entry_n3_s,
                        entry_reflexion_s, entry_transmission_s, entry_circle_s, calcul_type_s, entry_dri_s,
-                       entry_drw_s) -> None:
+                       entry_drw_s, entry_tm_te_s) -> None:
 
         f_i_list, d_i_list, f_r_list, d_r_list, d_dr_list, n_3_list = ConstVal.set_list()
         print("calcul start")
@@ -565,7 +675,7 @@ class Calculation:
 
         elif calc_type == "R/lambda f var":
             r_f_ll, t_f_ll = Calculation.reflexion_f(float(entry_n3_s), f_r_list, epsilon_h_list, eta_list[0],
-                                                     n_substrate_list, k0_list, float(entry_d_s))
+                                                     n_substrate_list, k0_list, float(entry_d_s), entry_tm_te_s)
             label_l = ["f = " + str(f_r_list[i]) for i in range(len(f_r_list))]
             tlt_str, xla_str, y_lab_str = "Reflexion in term of lambda with f variations", "wavelength (nm)", "R"
             tlt2_str, y2_lab_str = "Transmission in term of lambda with f variations", 'T'
@@ -579,7 +689,7 @@ class Calculation:
 
         elif calc_type == "R/lambda n3 var":
             r_n3_ll, t_n3_ll = Calculation.reflexion_n_3(n_3_list, float(entry_f_s), epsilon_h_list, eta_list[0],
-                                                         n_substrate_list, k0_list, float(entry_d_s))
+                                                         n_substrate_list, k0_list, float(entry_d_s), entry_tm_te_s)
             label_l = ["n3 = " + str(n_3_list[i]) for i in range(len(n_3_list))]
             tlt_str, xla_str, y_lab_str = "Reflexion in term of lambda with n3 variations", "wavelength (nm)", "R"
             tlt2_str, y2_lab_str = "Transmission in term of lambda with n3 variations", 'T'
@@ -594,7 +704,7 @@ class Calculation:
 
         elif calc_type == "R/lambda d var":
             r_d_ll, t_d_ll = Calculation.reflexion_d(float(entry_n3_s), float(entry_f_s), epsilon_h_list, eta_list[0],
-                                                     sd_ll["glass_n"], k0_list, d_r_list)
+                                                     sd_ll["glass_n"], k0_list, d_r_list, entry_tm_te_s)
             label_l = ["d = " + str(d_r_list[i]) for i in range(len(d_r_list))]
             tlt_str, xla_str, y_lab_str = "Reflexion in term of lambda with d variations", "wavelength (nm)", "R"
             tlt2_str, y2_lab_str = "Transmission in term of lambda with d variations", 'T'
@@ -608,7 +718,7 @@ class Calculation:
 
         if calcul_type_s == "DR":
             dynamic_i, dynamic_w = Calculation.dynamic_range(f_r_list, epsilon_h_list, eta_list[0], n_substrate_list,
-                                                             k0_list, d_dr_list)
+                                                             k0_list, d_dr_list, entry_tm_te_s)
             label_l = ["f = " + str(f_r_list[i]) for i in range(len(f_r_list))]
             if entry_dri_s == "on":
                 tlt_str, xla_str, y_lab_str = "Intensity Dynamic Range", "thickness d", "Intensity"
@@ -691,7 +801,8 @@ class Graphic:
                                                    self.check_circle.get(),
                                                    self.calcul_type,
                                                    None,
-                                                   None
+                                                   None,
+                                                   self.te_tm_button.get()
                                                    )
                     elif self.tabview4.get() == "d variations":
                         self.calcul_type = "R/lambda d var"
@@ -712,7 +823,8 @@ class Graphic:
                                                    self.check_circle.get(),
                                                    self.calcul_type,
                                                    None,
-                                                   None
+                                                   None,
+                                                   self.te_tm_button.get()
                                                    )
                     elif self.tabview4.get() == "n3 variations":
                         self.calcul_type = "R/lambda n3 var"
@@ -733,7 +845,8 @@ class Graphic:
                                                    self.check_circle.get(),
                                                    self.calcul_type,
                                                    None,
-                                                   None
+                                                   None,
+                                                   self.te_tm_button.get()
                                                    )
                     elif self.tabview4.get() == "Dynamic Range":
                         self.calcul_type = "DR"
@@ -754,7 +867,8 @@ class Graphic:
                                                    None,
                                                    self.calcul_type,
                                                    self.check_dri.get(),
-                                                   self.check_drw.get()
+                                                   self.check_drw.get(),
+                                                   self.te_tm_button.get()
                                                    )
 
             def print_button_click():
@@ -851,10 +965,10 @@ class Graphic:
             self.label_lambda_signe = ctk.CTkLabel(master=self.frame, text="μm", font=font_name, width=80)
             self.label_lambda_signe.grid(row=1, column=4, pady=(40, 0), padx=0, sticky="nsew")
 
-            self.seg_button_1 = ctk.CTkSegmentedButton(master=self.frame, height=25, width=100)
-            self.seg_button_1.grid(row=1, column=6, pady=(40, 0), padx=0, sticky="nsew")
-            self.seg_button_1.configure(values=["TE", "TM"])
-            self.seg_button_1.set("TE")
+            self.te_tm_button = ctk.CTkSegmentedButton(master=self.frame, height=25, width=100)
+            self.te_tm_button.grid(row=1, column=6, pady=(40, 0), padx=0, sticky="nsew")
+            self.te_tm_button.configure(values=["TE", "TM"])
+            self.te_tm_button.set("TE")
 
             self.tabview = ctk.CTkTabview(master=self.frame, height=250, width=250)
             self.tabview.grid(row=0, column=5, columnspan=3, padx=25, pady=(10, 0), sticky="n")
@@ -868,19 +982,19 @@ class Graphic:
 
             self.textbox_n1 = ctk.CTkTextbox(self.tabview.tab("n1"), width=250)
             self.textbox_n1.grid(padx=0, pady=0, sticky="w")
-            self.textbox_n1.insert("0.0", "n1 is the refraction ind-ice of the substrate, which is a glass")
+            self.textbox_n1.insert("0.0", "n1 is the refraction indice of the substrate, which is a glass")
 
             self.textbox_n2 = ctk.CTkTextbox(self.tabview.tab("n2"), width=250)
             self.textbox_n2.grid(padx=0, pady=0)
             self.textbox_n2.insert("0.0",
-                                   "n2 is the refraction ind-ice of the film, which is "
+                                   "n2 is the refraction indice of the film, which is "
                                    "an association of an Host and nano-part-icu-les of a Metal")
 
             self.textbox_n3 = ctk.CTkTextbox(self.tabview.tab("n3"), width=250)
             self.textbox_n3.grid(padx=0, pady=0)
             self.textbox_n3.insert("0.0",
-                                   "n3 is the refraction indic e of the ambient space, which is "
-                                   "beet-ween air and water, squ-ale with humidity")
+                                   "n3 is the refraction indice of the ambient space, which is "
+                                   "beetween air and water, squale with humidity")
 
             self.textbox_f = ctk.CTkTextbox(self.tabview.tab("f"), width=250)
             self.textbox_f.grid(padx=0, pady=0)
@@ -893,11 +1007,11 @@ class Graphic:
 
             self.textbox_TE = ctk.CTkTextbox(self.tabview.tab("TE"), width=250)
             self.textbox_TE.grid(padx=0, pady=0)
-            self.textbox_TE.insert("0.0", "TE is feu-r TE")
+            self.textbox_TE.insert("0.0", "TE is feur TE")
 
             self.textbox_TM = ctk.CTkTextbox(self.tabview.tab("TM"), width=250)
             self.textbox_TM.grid(padx=0, pady=0)
-            self.textbox_TM.insert("0.0", "TM is feu-r TM")
+            self.textbox_TM.insert("0.0", "TM is feur TM")
 
             self.tabview2 = ctk.CTkTabview(master=self.frame, height=400, width=700)
             self.tabview2.grid(row=3, column=0, columnspan=8, padx=50, pady=25, sticky="nsew")
