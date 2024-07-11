@@ -16,13 +16,36 @@ from PIL import Image, ImageTk
 class ConstVal:
     @staticmethod
     def set_list() -> Tuple[List[float], List[float], List[float], List[float], List[float], List[float]]:
-        f_i_l = list(np.linspace(0.0000001, 0.0001, 21))
+        f_i_l = [0.00000001, 0.00000002, 0.00000003, 0.00000004, 0.00000005, 0.00000006, 0.00000007, 0.00000008,
+                 0.00000009,
+                 0.0000001, 0.0000002, 0.0000003, 0.0000004, 0.0000005, 0.0000006, 0.0000007, 0.0000008, 0.0000009,
+                 0.000001, 0.000002, 0.000003, 0.000004, 0.000005, 0.000006, 0.000007, 0.000008, 0.000009,
+                 0.00001, 0.00002, 0.00003, 0.00004, 0.00005, 0.00006, 0.00007, 0.00008, 0.00009,
+                 0.0001, 0.0002, 0.0003, 0.0004, 0.0005, 0.0006, 0.0007, 0.0008, 0.0009,
+                 0.001, 0.002, 0.003, 0.004, 0.005, 0.006, 0.007, 0.008, 0.009,
+                 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.1
+                 ]
         d_i_l = list(np.linspace(100, 10000, 21))
-        f_r_l = list(np.linspace(0.01, 0.09, 9))
+        f_r_l = [0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09]
         d_r_l = list(np.linspace(0.020, 0.140, 13))
         d_dr_l = list(np.linspace(0.020, 0.140, 121))
         n_3_l = list(np.linspace(1.0, 1.33, 12))
         return f_i_l, d_i_l, f_r_l, d_r_l, d_dr_l, n_3_l
+
+    @staticmethod
+    def set_hsv_list(gold_s, iron_s, copper_s, plat_s, silver_s) -> List[str]:
+        hsv_list: List[str] = []
+        if gold_s == "on":
+            hsv_list.append("gold")
+        if iron_s == "on":
+            hsv_list.append("iron")
+        if copper_s == "on":
+            hsv_list.append("copper")
+        if plat_s == "on":
+            hsv_list.append("plat")
+        if silver_s == "on":
+            hsv_list.append("silver")
+        return hsv_list
 
 
 class Light:
@@ -107,7 +130,7 @@ class Light:
         return color_list_list
 
     @staticmethod
-    def hsv_circle(target_rgb_llt: List[List[Tuple[float, float, float]]]) -> None:
+    def hsv_circle(target_rgb_llt: List[List[Tuple[float, float, float]]], hsv_l: List[str]) -> None:
         #  add reduction of n while cross e_v
         n_v: int = 180
         e_v: int = 20
@@ -118,6 +141,8 @@ class Light:
         ax.set_ylim(-1.2, 1.2)
         ax.set_aspect('equal')
         ax.axis('off')
+
+        hsv_color_l: List = ['k', 'gray', 'brown', 'blue', 'darkblue']
 
         n1_v: int = len(target_rgb_llt)
         n2_v: int = len(target_rgb_llt[0])
@@ -153,10 +178,10 @@ class Light:
                             break
         for o in range(n1_v):
             x, y = list_plot[o][0]
-            ax.scatter(x, y, color='k', marker='+', label=f'List {o}')
+            ax.scatter(x, y, color=hsv_color_l[o], marker='+', label=hsv_l[o])
             for j in range(1, len(list_plot[o])):
                 x, y = list_plot[o][j]
-                ax.scatter(x, y, color='k', marker='o', s=15)
+                ax.scatter(x, y, color=hsv_color_l[o], marker='o', s=15)
         ax.legend()
 
 
@@ -335,7 +360,7 @@ class Calculation:
         return i_lll
 
     @staticmethod
-    def reflexion_f(n_3_val: float, f_l: List[float], epsilon_h_l: List[float], eta_l: List[float],
+    def reflection_f(n_3_val: float, f_l: List[float], epsilon_h_l: List[float], eta_l: List[float],
                     dataset_l: List[float], k0_l: List[float], d_val: float, t_val: str) \
             -> Tuple[List[List[float]], List[List[float]]]:
         rr_f_ll: List[List[float]] = []
@@ -385,7 +410,7 @@ class Calculation:
         return rr_f_ll, tt_f_ll
 
     @staticmethod
-    def reflexion_n_3(n_3_l: list, f_val: float, epsilon_h_l: list, eta_l: list, dataset_l: list, k0_l: list,
+    def reflection_n_3(n_3_l: list, f_val: float, epsilon_h_l: list, eta_l: list, dataset_l: list, k0_l: list,
                       d_val: float, t_val: str) -> Tuple[List[List[float]], List[List[float]]]:
         rr_n_3_ll: List[List[float]] = []
         tt_n3_ll: List[List[float]] = []
@@ -444,7 +469,7 @@ class Calculation:
         return rr_n_3_ll, tt_n3_ll
 
     @staticmethod
-    def reflexion_d(n_3_val: float, f_val: float, epsilon_h_l: List[float], eta_l: List[float], dataset_l: List[float],
+    def reflection_d(n_3_val: float, f_val: float, epsilon_h_l: List[float], eta_l: List[float], dataset_l: List[float],
                     k0_l: List[float], d_l: List[float], t_val: str) -> Tuple[List[List[float]], List[List[float]]]:
         rr_d_ll: List[List[float]] = []
         tt_d_ll: List[List[float]] = []
@@ -590,10 +615,12 @@ class Calculation:
     @staticmethod
     def do_calculation(entry_start_s, entry_stop_s, entry_substrate_s, entry_host_s, entry_gold_s, entry_iron_s,
                        entry_copper_s, entry_plat_s, entry_silver_s, entry_f_s, entry_d_s, entry_n3_s,
-                       entry_reflexion_s, entry_transmission_s, entry_circle_s, calcul_type_s, entry_dri_s,
+                       entry_reflection_s, entry_transmission_s, entry_circle_s, calcul_type_s, entry_dri_s,
                        entry_drw_s, entry_tm_te_s) -> None:
 
         f_i_list, d_i_list, f_r_list, d_r_list, d_dr_list, n_3_list = ConstVal.set_list()
+        hsv_list = ConstVal.set_hsv_list(entry_gold_s, entry_iron_s, entry_copper_s, entry_plat_s, entry_silver_s)
+
         print("calcul start")
         start_v: float = float(entry_start_s)
         stop_v: float = float(entry_stop_s)
@@ -660,7 +687,7 @@ class Calculation:
                             yla_s=y_lab_str)'''
 
             rgb_clr_llt = Light.rgb_i(f_i_list, intensity_lll, n_v, vector_lambda_l)
-            Light.hsv_circle(rgb_clr_llt)
+            Light.hsv_circle(rgb_clr_llt, hsv_list)
 
         elif calc_type == 'I d var':
             intensity_lll = Calculation.i_calc_d(float(entry_f_s), k0_list, d_i_list, epsilon_h_list, eta_list)
@@ -671,50 +698,50 @@ class Calculation:
                             yla_s=y_lab_str)'''
 
             rgb_clr_llt = Light.rgb_i(d_i_list, intensity_lll, n_v, vector_lambda_l)
-            Light.hsv_circle(rgb_clr_llt)
+            Light.hsv_circle(rgb_clr_llt, hsv_list)
 
         elif calc_type == "R/lambda f var":
-            r_f_ll, t_f_ll = Calculation.reflexion_f(float(entry_n3_s), f_r_list, epsilon_h_list, eta_list[0],
+            r_f_ll, t_f_ll = Calculation.reflection_f(float(entry_n3_s), f_r_list, epsilon_h_list, eta_list[0],
                                                      n_substrate_list, k0_list, float(entry_d_s), entry_tm_te_s)
             label_l = ["f = " + str(f_r_list[i]) for i in range(len(f_r_list))]
-            tlt_str, xla_str, y_lab_str = "Reflexion in term of lambda with f variations", "wavelength (nm)", "R"
+            tlt_str, xla_str, y_lab_str = "reflection in term of lambda with f variations", "wavelength (nm)", "R"
             tlt2_str, y2_lab_str = "Transmission in term of lambda with f variations", 'T'
-            if entry_reflexion_s == "on":
+            if entry_reflection_s == "on":
                 Graphic.graphic(vector_lambda_l, r_f_ll, lab_l=label_l, tlt_s=tlt_str, xla_s=xla_str, yla_s=y_lab_str)
             if entry_transmission_s == "on":
                 Graphic.graphic(vector_lambda_l, t_f_ll, lab_l=label_l, tlt_s=tlt2_str, xla_s=xla_str, yla_s=y2_lab_str)
             if entry_circle_s == 'on':
                 rgb_clr_llt = Light.rgb_i(f_r_list, [t_f_ll], n_v, vector_lambda_l)
-                Light.hsv_circle(rgb_clr_llt)
+                Light.hsv_circle(rgb_clr_llt, hsv_list)
 
         elif calc_type == "R/lambda n3 var":
-            r_n3_ll, t_n3_ll = Calculation.reflexion_n_3(n_3_list, float(entry_f_s), epsilon_h_list, eta_list[0],
+            r_n3_ll, t_n3_ll = Calculation.reflection_n_3(n_3_list, float(entry_f_s), epsilon_h_list, eta_list[0],
                                                          n_substrate_list, k0_list, float(entry_d_s), entry_tm_te_s)
             label_l = ["n3 = " + str(n_3_list[i]) for i in range(len(n_3_list))]
-            tlt_str, xla_str, y_lab_str = "Reflexion in term of lambda with n3 variations", "wavelength (nm)", "R"
+            tlt_str, xla_str, y_lab_str = "reflection in term of lambda with n3 variations", "wavelength (nm)", "R"
             tlt2_str, y2_lab_str = "Transmission in term of lambda with n3 variations", 'T'
-            if entry_reflexion_s == "on":
+            if entry_reflection_s == "on":
                 Graphic.graphic(vector_lambda_l, r_n3_ll, lab_l=label_l, tlt_s=tlt_str, xla_s=xla_str, yla_s=y_lab_str)
             if entry_transmission_s == "on":
                 Graphic.graphic(vector_lambda_l, t_n3_ll, lab_l=label_l, tlt_s=tlt2_str, xla_s=xla_str,
                                 yla_s=y2_lab_str)
             if entry_circle_s == 'on':
                 rgb_clr_llt = Light.rgb_i(n_3_list, [t_n3_ll], n_v, vector_lambda_l)
-                Light.hsv_circle(rgb_clr_llt)
+                Light.hsv_circle(rgb_clr_llt, hsv_list)
 
         elif calc_type == "R/lambda d var":
-            r_d_ll, t_d_ll = Calculation.reflexion_d(float(entry_n3_s), float(entry_f_s), epsilon_h_list, eta_list[0],
+            r_d_ll, t_d_ll = Calculation.reflection_d(float(entry_n3_s), float(entry_f_s), epsilon_h_list, eta_list[0],
                                                      sd_ll["glass_n"], k0_list, d_r_list, entry_tm_te_s)
             label_l = ["d = " + str(d_r_list[i]) for i in range(len(d_r_list))]
-            tlt_str, xla_str, y_lab_str = "Reflexion in term of lambda with d variations", "wavelength (nm)", "R"
+            tlt_str, xla_str, y_lab_str = "reflection in term of lambda with d variations", "wavelength (nm)", "R"
             tlt2_str, y2_lab_str = "Transmission in term of lambda with d variations", 'T'
-            if entry_reflexion_s == "on":
+            if entry_reflection_s == "on":
                 Graphic.graphic(vector_lambda_l, r_d_ll, lab_l=label_l, tlt_s=tlt_str, xla_s=xla_str, yla_s=y_lab_str)
             if entry_transmission_s == "on":
                 Graphic.graphic(vector_lambda_l, t_d_ll, lab_l=label_l, tlt_s=tlt2_str, xla_s=xla_str, yla_s=y2_lab_str)
             if entry_circle_s == 'on':
                 rgb_clr_llt = Light.rgb_i(d_r_list, [t_d_ll], n_v, vector_lambda_l)
-                Light.hsv_circle(rgb_clr_llt)
+                Light.hsv_circle(rgb_clr_llt, hsv_list)
 
         if calcul_type_s == "DR":
             dynamic_i, dynamic_w = Calculation.dynamic_range(f_r_list, epsilon_h_list, eta_list[0], n_substrate_list,
@@ -797,7 +824,7 @@ class Graphic:
                                                    None,
                                                    self.sensor_checkbox_f_d.get(),
                                                    self.sensor_checkbox_f_n3.get(),
-                                                   self.check_reflexion.get(),
+                                                   self.check_reflection.get(),
                                                    self.check_transmission.get(),
                                                    self.check_circle.get(),
                                                    self.calcul_type,
@@ -819,7 +846,7 @@ class Graphic:
                                                    self.sensor_checkbox_d_f.get(),
                                                    None,
                                                    self.sensor_checkbox_d_n3.get(),
-                                                   self.check_reflexion.get(),
+                                                   self.check_reflection.get(),
                                                    self.check_transmission.get(),
                                                    self.check_circle.get(),
                                                    self.calcul_type,
@@ -841,7 +868,7 @@ class Graphic:
                                                    self.sensor_checkbox_n3_f.get(),
                                                    self.sensor_checkbox_n3_d.get(),
                                                    None,
-                                                   self.check_reflexion.get(),
+                                                   self.check_reflection.get(),
                                                    self.check_transmission.get(),
                                                    self.check_circle.get(),
                                                    self.calcul_type,
@@ -933,6 +960,20 @@ class Graphic:
                             == self.plat_entry_sensor.get() == "off"):
                         self.silver_entry_sensor.set("on")
 
+            def image_change():
+                if self.tabview2.get() == "Color in Thin glass":
+                    self.image = Image.open("schema_i.png")
+                    self.image = self.image.resize((475, 250))
+                    self.photo = ImageTk.PhotoImage(self.image)
+                    self.label_image = ctk.CTkLabel(self.frame, image=self.photo, text="")
+                    self.label_image.grid(row=0, column=0, pady=(25, 0), padx=(25, 0), columnspan=5)
+                elif self.tabview2.get() == "Sensor":
+                    self.image = Image.open("schema_sensor.png")
+                    self.image = self.image.resize((475, 250))
+                    self.photo = ImageTk.PhotoImage(self.image)
+                    self.label_image = ctk.CTkLabel(self.frame, image=self.photo, text="")
+                    self.label_image.grid(row=0, column=0, pady=(25, 0), padx=(25, 0), columnspan=5)
+
             font_name = ("Roboto", 12)
             self.title("CustomTkinter learning")
             self.geometry(f"{850}x{850}")
@@ -943,7 +984,7 @@ class Graphic:
             for i in range(8):
                 self.frame.grid_columnconfigure(i, weight=1, minsize=100)
 
-            self.image = Image.open("test.png")
+            self.image = Image.open("schema_i.png")
             self.image = self.image.resize((475, 250))
             self.photo = ImageTk.PhotoImage(self.image)
             self.label_image = ctk.CTkLabel(self.frame, image=self.photo, text="")
@@ -981,9 +1022,9 @@ class Graphic:
             self.tabview.add("TE")
             self.tabview.add("TM")
 
-            self.textbox_n1 = ctk.CTkTextbox(self.tabview.tab("n1"), width=250)
-            self.textbox_n1.grid(padx=0, pady=0, sticky="w")
-            self.textbox_n1.insert("0.0", "n1 is the refraction indice of the substrate, which is a glass")
+            self.texbox_n1 = ctk.CTkTextbox(self.tabview.tab("n1"), width=250)
+            self.texbox_n1.grid(padx=0, pady=0, sticky="w")
+            self.texbox_n1.insert("0.0", "n1 is the refraction indice of the substrate, which is a glass")
 
             self.textbox_n2 = ctk.CTkTextbox(self.tabview.tab("n2"), width=250)
             self.textbox_n2.grid(padx=0, pady=0)
@@ -1014,7 +1055,7 @@ class Graphic:
             self.textbox_TM.grid(padx=0, pady=0)
             self.textbox_TM.insert("0.0", "TM is feur TM")
 
-            self.tabview2 = ctk.CTkTabview(master=self.frame, height=400, width=700)
+            self.tabview2 = ctk.CTkTabview(master=self.frame, height=400, width=700, command=image_change)
             self.tabview2.grid(row=3, column=0, columnspan=8, padx=50, pady=25, sticky="nsew")
 
             self.tabview2.add("Color in Thin glass")
@@ -1057,7 +1098,7 @@ class Graphic:
                                                     variable=self.copper_entry_color, onvalue="on", offvalue="off",
                                                     width=80)
             self.color_checkbox_3.grid(row=1, column=3, padx=10, pady=10, sticky="nsew")
-            self.color_checkbox_4 = ctk.CTkCheckBox(self.tabview2.tab("Color in Thin glass"), text="plat",
+            self.color_checkbox_4 = ctk.CTkCheckBox(self.tabview2.tab("Color in Thin glass"), text="Plat",
                                                     command=lambda: checkbox_clicked_color(self.color_checkbox_4),
                                                     variable=self.plat_entry_color, onvalue="on", offvalue="off",
                                                     width=80)
@@ -1256,16 +1297,16 @@ class Graphic:
             self.label = ctk.CTkLabel(self.tabview4.tab("Dynamic Range"), text="", font=font_name, width=133)
             self.label.grid(row=1, column=2, padx=0, pady=10, sticky="nsew")
 
-            self.check_reflexion = ctk.StringVar(value="off")
+            self.check_reflection = ctk.StringVar(value="off")
             self.check_transmission = ctk.StringVar(value="off")
             self.check_circle = ctk.StringVar(value="off")
 
-            self.sensor_checkbox_11 = ctk.CTkCheckBox(self.tabview2.tab("Sensor"), text="Reflexion",
-                                                      variable=self.check_reflexion, onvalue="on", offvalue="off",
+            self.sensor_checkbox_11 = ctk.CTkCheckBox(self.tabview2.tab("Sensor"), text="reflection",
+                                                      variable=self.check_reflection, onvalue="on", offvalue="off",
                                                       width=100)
             self.sensor_checkbox_11.grid(row=3, column=2, padx=0, pady=10, sticky="nsew")
 
-            self.sensor_checkbox_22 = ctk.CTkCheckBox(self.tabview2.tab("Sensor"), text="Transmittance",
+            self.sensor_checkbox_22 = ctk.CTkCheckBox(self.tabview2.tab("Sensor"), text="Transmission",
                                                       variable=self.check_transmission, onvalue="on", offvalue="off",
                                                       width=100)
             self.sensor_checkbox_22.grid(row=3, column=3, padx=0, pady=10, sticky="nsew")
@@ -1282,3 +1323,5 @@ class Graphic:
             self.button_sensor_print = ctk.CTkButton(self.tabview2.tab("Sensor"), text="Print", width=80,
                                                      command=print_button_click)
             self.button_sensor_print.grid(row=4, column=6, pady=0, padx=10, sticky="w")
+
+
