@@ -1,4 +1,4 @@
-# photonic-sensing
+# Photonic Sensing
 
 The aim of this project is to gain a theoretical understanding of the changes in the properties of light as it travels through an element composed of metal nanoparticles. 
 
