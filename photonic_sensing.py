@@ -221,13 +221,13 @@ class Material:
         smooth_dataset_l: list = []
         smooth_dataset_square_l: list = []
 
-        n_pm_ma = "array/n_pm_ma.csv"
-        n_glass = "array/n_fused_silica.csv"
-        n_k_gold = "array/n_k_gold.csv"
-        n_k_iron = "array/n_k_iron.csv"
-        n_k_copper = "array/n_k_copper.csv"
-        n_k_plat = "array/n_k_plat.csv"
-        n_k_silver = "array/n_k_silver.csv"
+        n_pm_ma = "res/array/n_pm_ma.csv"
+        n_glass = "res/array/n_fused_silica.csv"
+        n_k_gold = "res/array/n_k_gold.csv"
+        n_k_iron = "res/array/n_k_iron.csv"
+        n_k_copper = "res/array/n_k_copper.csv"
+        n_k_plat = "res/array/n_k_plat.csv"
+        n_k_silver = "res/array/n_k_silver.csv"
 
         n_data_pm_ma_ll, empty0 = Material.read_csv_on_list(n_pm_ma, start_v, stop_v)
         n_data_glass_ll, empty0 = Material.read_csv_on_list(n_glass, start_v, stop_v)
@@ -962,13 +962,13 @@ class Graphic:
 
             def image_change():
                 if self.tabview2.get() == "Color in Thin glass":
-                    self.image = Image.open("schema_i.png")
+                    self.image = Image.open("res/image/schema_i.png")
                     self.image = self.image.resize((475, 250))
                     self.photo = ImageTk.PhotoImage(self.image)
                     self.label_image = ctk.CTkLabel(self.frame, image=self.photo, text="")
                     self.label_image.grid(row=0, column=0, pady=(25, 0), padx=(25, 0), columnspan=5)
                 elif self.tabview2.get() == "Sensor":
-                    self.image = Image.open("schema_sensor.png")
+                    self.image = Image.open("res/image/schema_sensor.png")
                     self.image = self.image.resize((475, 250))
                     self.photo = ImageTk.PhotoImage(self.image)
                     self.label_image = ctk.CTkLabel(self.frame, image=self.photo, text="")
@@ -984,7 +984,7 @@ class Graphic:
             for i in range(8):
                 self.frame.grid_columnconfigure(i, weight=1, minsize=100)
 
-            self.image = Image.open("schema_i.png")
+            self.image = Image.open("res/image/schema_i.png")
             self.image = self.image.resize((475, 250))
             self.photo = ImageTk.PhotoImage(self.image)
             self.label_image = ctk.CTkLabel(self.frame, image=self.photo, text="")
@@ -1030,13 +1030,13 @@ class Graphic:
             self.textbox_n2.grid(padx=0, pady=0)
             self.textbox_n2.insert("0.0",
                                    "n2 is the refraction indice of the film, which is "
-                                   "an association of an Host and nano-part-icu-les of a Metal")
+                                   "an association of an Host and nanoparticles of a Metal")
 
             self.textbox_n3 = ctk.CTkTextbox(self.tabview.tab("n3"), width=250)
             self.textbox_n3.grid(padx=0, pady=0)
             self.textbox_n3.insert("0.0",
                                    "n3 is the refraction indice of the ambient space, which is "
-                                   "beetween air and water, squale with humidity")
+                                   "beetween air and water, squale with humidity (1.00 -> 1.33)")
 
             self.textbox_f = ctk.CTkTextbox(self.tabview.tab("f"), width=250)
             self.textbox_f.grid(padx=0, pady=0)
@@ -1282,7 +1282,7 @@ class Graphic:
 
             self.sensor_checkbox_dri = ctk.CTkCheckBox(self.tabview4.tab("Dynamic Range"), text="DR i",
                                                        variable=self.check_dri, onvalue="on", offvalue="off")
-            self.sensor_checkbox_dri.grid(row=0, column=1, padx=0, pady=10, sticky="nsew")
+            self.sensor_checkbox_dri.grid(row=0, column=0, padx=(25, 0), pady=10, sticky="nsew")
 
             self.label = ctk.CTkLabel(self.tabview4.tab("Dynamic Range"), text="", font=font_name, width=133)
             self.label.grid(row=0, column=2, padx=0, pady=10, sticky="nsew")
@@ -1292,7 +1292,7 @@ class Graphic:
 
             self.sensor_checkbox_drw = ctk.CTkCheckBox(self.tabview4.tab("Dynamic Range"), text="DR w",
                                                        variable=self.check_drw, onvalue="on", offvalue="off")
-            self.sensor_checkbox_drw.grid(row=1, column=1, padx=0, pady=10, sticky="nsew")
+            self.sensor_checkbox_drw.grid(row=1, column=0, padx=(25, 0), pady=10, sticky="nsew")
 
             self.label = ctk.CTkLabel(self.tabview4.tab("Dynamic Range"), text="", font=font_name, width=133)
             self.label.grid(row=1, column=2, padx=0, pady=10, sticky="nsew")
@@ -1301,7 +1301,7 @@ class Graphic:
             self.check_transmission = ctk.StringVar(value="off")
             self.check_circle = ctk.StringVar(value="off")
 
-            self.sensor_checkbox_11 = ctk.CTkCheckBox(self.tabview2.tab("Sensor"), text="reflection",
+            self.sensor_checkbox_11 = ctk.CTkCheckBox(self.tabview2.tab("Sensor"), text="Reflection",
                                                       variable=self.check_reflection, onvalue="on", offvalue="off",
                                                       width=100)
             self.sensor_checkbox_11.grid(row=3, column=2, padx=0, pady=10, sticky="nsew")
@@ -1309,19 +1309,17 @@ class Graphic:
             self.sensor_checkbox_22 = ctk.CTkCheckBox(self.tabview2.tab("Sensor"), text="Transmission",
                                                       variable=self.check_transmission, onvalue="on", offvalue="off",
                                                       width=100)
-            self.sensor_checkbox_22.grid(row=3, column=3, padx=0, pady=10, sticky="nsew")
+            self.sensor_checkbox_22.grid(row=3, column=3, columnspan=2, padx=0, pady=10, sticky="nsew")
 
             self.sensor_checkbox_3 = ctk.CTkCheckBox(self.tabview2.tab("Sensor"), text="Color Circle",
                                                      variable=self.check_circle, onvalue="on", offvalue="off",
-                                                     width=100)
-            self.sensor_checkbox_3.grid(row=3, column=4, padx=0, pady=10, sticky="nsew")
+                                                     width=90)
+            self.sensor_checkbox_3.grid(row=3, column=4, padx=(10, 0), pady=10, sticky="nsew")
 
             self.button_sensor_calcul = ctk.CTkButton(self.tabview2.tab("Sensor"), text="Calcul", width=80,
                                                       command=calcul_button_click)
-            self.button_sensor_calcul.grid(row=4, column=0, pady=0, padx=10, sticky="w")
+            self.button_sensor_calcul.grid(row=4, column=0, pady=(0, 10), padx=10, sticky="nsew")
 
             self.button_sensor_print = ctk.CTkButton(self.tabview2.tab("Sensor"), text="Print", width=80,
                                                      command=print_button_click)
-            self.button_sensor_print.grid(row=4, column=6, pady=0, padx=10, sticky="w")
-
-
+            self.button_sensor_print.grid(row=4, column=6, pady=(0, 10), padx=10, sticky="nsew")
