@@ -702,7 +702,7 @@ class Calculation:
 
         elif calc_type == "R/lambda f var":
             r_f_ll, t_f_ll = Calculation.reflection_f(float(entry_n3_s), f_r_list, epsilon_h_list, eta_list[0],
-                                                     n_substrate_list, k0_list, float(entry_d_s), entry_tm_te_s)
+                                                      n_substrate_list, k0_list, float(entry_d_s), entry_tm_te_s)
             label_l = ["f = " + str(f_r_list[i]) for i in range(len(f_r_list))]
             tlt_str, xla_str, y_lab_str = "reflection in term of lambda with f variations", "wavelength (nm)", "R"
             tlt2_str, y2_lab_str = "Transmission in term of lambda with f variations", 'T'
@@ -784,7 +784,7 @@ class Graphic:
             super().__init__()
 
             def calcul_button_click():
-                if self.tabview2.get() == "Color in Thin glass":
+                if self.tabview2.get() == "Color in glass":
                     if self.tabview3.get() == "f variations":
                         self.calcul_type = "I f var"
                     elif self.tabview3.get() == "d variations":
@@ -961,7 +961,7 @@ class Graphic:
                         self.silver_entry_sensor.set("on")
 
             def image_change():
-                if self.tabview2.get() == "Color in Thin glass":
+                if self.tabview2.get() == "Color in glass":
                     self.image = Image.open("res/image/schema_i.png")
                     self.image = self.image.resize((475, 250))
                     self.photo = ImageTk.PhotoImage(self.image)
@@ -1058,22 +1058,22 @@ class Graphic:
             self.tabview2 = ctk.CTkTabview(master=self.frame, height=400, width=700, command=image_change)
             self.tabview2.grid(row=3, column=0, columnspan=8, padx=50, pady=25, sticky="nsew")
 
-            self.tabview2.add("Color in Thin glass")
+            self.tabview2.add("Color in glass")
             self.tabview2.add("Sensor")
             for i in range(7):
-                self.tabview2.tab("Color in Thin glass").grid_columnconfigure(i, weight=1, minsize=100)
+                self.tabview2.tab("Color in glass").grid_columnconfigure(i, weight=1, minsize=100)
                 self.tabview2.tab("Sensor").grid_columnconfigure(i, weight=1, minsize=100)
 
-            self.label_color_host = ctk.CTkLabel(self.tabview2.tab("Color in Thin glass"), text="Host  :",
+            self.label_color_host = ctk.CTkLabel(self.tabview2.tab("Color in glass"), text="Host  :",
                                                  font=font_name, width=80)
             self.label_color_host.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
-            self.entry_color_host = ctk.CTkOptionMenu(self.tabview2.tab("Color in Thin glass"), values=["glass"],
+            self.entry_color_host = ctk.CTkOptionMenu(self.tabview2.tab("Color in glass"), values=["glass"],
                                                       width=80)
             self.entry_color_host.grid(row=0, column=1, pady=10, padx=10, sticky="nsew")
             self.entry_color_host.set("glass")
 
-            self.label_color_metal = ctk.CTkLabel(self.tabview2.tab("Color in Thin glass"), text="Metal :",
+            self.label_color_metal = ctk.CTkLabel(self.tabview2.tab("Color in glass"), text="Metal :",
                                                   font=font_name, width=80)
             self.label_color_metal.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
 
@@ -1083,33 +1083,33 @@ class Graphic:
             self.plat_entry_color = ctk.StringVar(value="off")
             self.silver_entry_color = ctk.StringVar(value="off")
 
-            self.color_checkbox_1 = ctk.CTkCheckBox(self.tabview2.tab("Color in Thin glass"), text="Gold",
+            self.color_checkbox_1 = ctk.CTkCheckBox(self.tabview2.tab("Color in glass"), text="Gold",
                                                     command=lambda: checkbox_clicked_color(self.color_checkbox_1),
                                                     variable=self.gold_entry_color, onvalue="on", offvalue="off",
                                                     width=80)
             self.color_checkbox_1.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
-            self.color_checkbox_2 = ctk.CTkCheckBox(self.tabview2.tab("Color in Thin glass"), text="Iron",
+            self.color_checkbox_2 = ctk.CTkCheckBox(self.tabview2.tab("Color in glass"), text="Iron",
                                                     command=lambda: checkbox_clicked_color(self.color_checkbox_2),
                                                     variable=self.iron_entry_color, onvalue="on", offvalue="off",
                                                     width=80)
             self.color_checkbox_2.grid(row=1, column=2, padx=10, pady=10, sticky="nsew")
-            self.color_checkbox_3 = ctk.CTkCheckBox(self.tabview2.tab("Color in Thin glass"), text="Copper",
+            self.color_checkbox_3 = ctk.CTkCheckBox(self.tabview2.tab("Color in glass"), text="Copper",
                                                     command=lambda: checkbox_clicked_color(self.color_checkbox_3),
                                                     variable=self.copper_entry_color, onvalue="on", offvalue="off",
                                                     width=80)
             self.color_checkbox_3.grid(row=1, column=3, padx=10, pady=10, sticky="nsew")
-            self.color_checkbox_4 = ctk.CTkCheckBox(self.tabview2.tab("Color in Thin glass"), text="Plat",
+            self.color_checkbox_4 = ctk.CTkCheckBox(self.tabview2.tab("Color in glass"), text="Plat",
                                                     command=lambda: checkbox_clicked_color(self.color_checkbox_4),
                                                     variable=self.plat_entry_color, onvalue="on", offvalue="off",
                                                     width=80)
             self.color_checkbox_4.grid(row=1, column=4, padx=10, pady=10, sticky="nsew")
-            self.color_checkbox_5 = ctk.CTkCheckBox(self.tabview2.tab("Color in Thin glass"), text="Silver",
+            self.color_checkbox_5 = ctk.CTkCheckBox(self.tabview2.tab("Color in glass"), text="Silver",
                                                     command=lambda: checkbox_clicked_color(self.color_checkbox_5),
                                                     variable=self.silver_entry_color, onvalue="on", offvalue="off",
                                                     width=80)
             self.color_checkbox_5.grid(row=1, column=5, padx=10, pady=10, sticky="nsew")
 
-            self.tabview3 = ctk.CTkTabview(self.tabview2.tab("Color in Thin glass"), height=100, width=300)
+            self.tabview3 = ctk.CTkTabview(self.tabview2.tab("Color in glass"), height=100, width=300)
             self.tabview3.grid(row=2, column=2, columnspan=3, pady=10, padx=0, sticky="nsew")
             self.tabview3.add("f variations")
             self.tabview3.add("d variations")
@@ -1138,11 +1138,11 @@ class Graphic:
             self.label = ctk.CTkLabel(self.tabview3.tab("d variations"), text="", font=font_name, width=80)
             self.label.grid(row=0, column=2, padx=10, pady=10, sticky="nsew")
 
-            self.button_color_calcul = ctk.CTkButton(self.tabview2.tab("Color in Thin glass"), text="Calcul", width=80,
+            self.button_color_calcul = ctk.CTkButton(self.tabview2.tab("Color in glass"), text="Calcul", width=80,
                                                      command=calcul_button_click)
             self.button_color_calcul.grid(row=3, column=0, pady=10, padx=10, sticky="nsew")
 
-            self.button_color_print = ctk.CTkButton(self.tabview2.tab("Color in Thin glass"), text="Print", width=80,
+            self.button_color_print = ctk.CTkButton(self.tabview2.tab("Color in glass"), text="Print", width=80,
                                                     command=print_button_click)
             self.button_color_print.grid(row=3, column=6, pady=10, padx=10, sticky="nsew")
 
