@@ -16,8 +16,7 @@ from PIL import Image, ImageTk
 class ConstVal:
     @staticmethod
     def set_list() -> Tuple[List[float], List[float], List[float], List[float], List[float], List[float]]:
-        f_i_l = [0.00000001, 0.00000002, 0.00000003, 0.00000004, 0.00000005, 0.00000006, 0.00000007, 0.00000008,
-                 0.00000009,
+        f_i_l = [
                  0.0000001, 0.0000002, 0.0000003, 0.0000004, 0.0000005, 0.0000006, 0.0000007, 0.0000008, 0.0000009,
                  0.000001, 0.000002, 0.000003, 0.000004, 0.000005, 0.000006, 0.000007, 0.000008, 0.000009,
                  0.00001, 0.00002, 0.00003, 0.00004, 0.00005, 0.00006, 0.00007, 0.00008, 0.00009,
@@ -130,11 +129,11 @@ class Light:
         return color_list_list
 
     @staticmethod
-    def hsv_circle(target_rgb_llt: List[List[Tuple[float, float, float]]], hsv_l: List[str]) -> None:
-        #  add reduction of n while cross e_v
+    def hsv_circle(target_rgb_llt: List[List[Tuple[float, float, float]]], hsv_l: List[str], title_s: str) -> None:
         n_v: int = 180
-        e_v: int = 20
+        e_v: int = 30
         s_v: int = 4000 // e_v
+        first_element: list = [0, 0, 0, 0, 0]
 
         fig, ax = plt.subplots(figsize=(10, 10))
         ax.set_xlim(-1.2, 1.2)
@@ -159,7 +158,7 @@ class Light:
 
         for k in range(e_v + 1):
             u: float = int(k / (e_v + 1) * 1000) / 10
-            print(str(str(u) + '%'))
+            print(f"{u}%")
             hsv_colors_lt: List[Tuple[float, float, int]] = [(i / n_v, 1 - k / e_v, 1) for i in range(n_v)]
             rgb_colors_lt: List[tuple[float, float, float]] = [colorsys.hsv_to_rgb(*hsv) for hsv in hsv_colors_lt]
 
@@ -169,19 +168,26 @@ class Light:
                 ax.scatter(x_v, y_v, c=[rgb_color_t], s=s_v)
 
                 for o in range(n1_v):
-                    for j in range(n2_v):
-                        if (hsv_color_t[0] < target_hsv_llt[o][j][0] + 1 / ((n_v - 1) * 2)) and \
-                                (hsv_color_t[0] > target_hsv_llt[o][j][0] - 1 / ((n_v - 1) * 2)) and \
-                                (hsv_color_t[1] < target_hsv_llt[o][j][1] + 1 / (e_v * 2)) and \
-                                (hsv_color_t[1] > target_hsv_llt[o][j][1] - 1 / (e_v * 2)):
+                    if all(abs(hsv_color_t[i] - target_hsv_llt[o][0][i]) <= [1 / ((n_v - 1) * 2), 1 / (e_v * 2)][i]
+                           for i in range(2)):
+                        list_plot[o].append((x_v, y_v))
+                        first_element[o] = len(list_plot[o])-1
+
+                    for j in range(1, n2_v):
+                        if all(abs(hsv_color_t[i] - target_hsv_llt[o][j][i]) <= [1 / ((n_v - 1) * 2), 1 / (e_v * 2)][i]
+                               for i in range(2)):
                             list_plot[o].append((x_v, y_v))
                             break
+
         for o in range(n1_v):
-            x, y = list_plot[o][0]
-            ax.scatter(x, y, color=hsv_color_l[o], marker='+', label=hsv_l[o])
-            for j in range(1, len(list_plot[o])):
+            for j in range(0, len(list_plot[o])):
                 x, y = list_plot[o][j]
                 ax.scatter(x, y, color=hsv_color_l[o], marker='o', s=15)
+
+            x, y = list_plot[o][first_element[o]]
+            ax.scatter(x, y, color=hsv_color_l[o], marker='+', label=hsv_l[o], s=150)
+
+        ax.set_title(str(title_s))
         ax.legend()
 
 
@@ -680,68 +686,74 @@ class Calculation:
 
         if calc_type == 'I f var':
             intensity_lll = Calculation.i_calc_f(f_i_list, k0_list, float(entry_d_s), epsilon_h_list, eta_list)
-            '''
-            label_l = ["f = " + str(f_i_list[i]) for i in range(len(f_i_list))]
+
+            '''label_l = ["f = " + str(f_i_list[i]) for i in range(len(f_i_list))]
             tlt_str, xla_str, y_lab_str = "I f var", "wavelength (nm)", "intensity"
-            Graphic.graphic(vector_lambda_l, intensity_ll, lab_l=label_l, tlt_s=tlt_str, xla_s=xla_str,
+            for i in intensity_lll:
+                Graphic.graphic(vector_lambda_l, i, lab_l=label_l, tlt_s=tlt_str, xla_s=xla_str,
                             yla_s=y_lab_str)'''
 
+            title_ = "Color Transmission in function of f which scale linearly from 0.0000001 to 0.1"
             rgb_clr_llt = Light.rgb_i(f_i_list, intensity_lll, n_v, vector_lambda_l)
-            Light.hsv_circle(rgb_clr_llt, hsv_list)
+            Light.hsv_circle(rgb_clr_llt, hsv_list, title_)
 
         elif calc_type == 'I d var':
             intensity_lll = Calculation.i_calc_d(float(entry_f_s), k0_list, d_i_list, epsilon_h_list, eta_list)
-            '''
-            label_l = ["d = " + str(f_i_list[i]) for i in range(len(d_i_list))]
-            tlt_str, xla_str, y_lab_str = "I d var", "wavelength (nm)", "intensity"
-            Graphic.graphic(vector_lambda_l, intensity_ll, lab_l=label_l, tlt_s=tlt_str, xla_s=xla_str,
-                            yla_s=y_lab_str)'''
-
+            title_ = "Color Transmission in function of d which scale linearly from 0.1 mm to 1 cm"
             rgb_clr_llt = Light.rgb_i(d_i_list, intensity_lll, n_v, vector_lambda_l)
-            Light.hsv_circle(rgb_clr_llt, hsv_list)
+            Light.hsv_circle(rgb_clr_llt, hsv_list, title_)
 
         elif calc_type == "R/lambda f var":
             r_f_ll, t_f_ll = Calculation.reflection_f(float(entry_n3_s), f_r_list, epsilon_h_list, eta_list[0],
                                                       n_substrate_list, k0_list, float(entry_d_s), entry_tm_te_s)
             label_l = ["f = " + str(f_r_list[i]) for i in range(len(f_r_list))]
-            tlt_str, xla_str, y_lab_str = "reflection in term of lambda with f variations", "wavelength (nm)", "R"
-            tlt2_str, y2_lab_str = "Transmission in term of lambda with f variations", 'T'
+            tlt_str, xla_str, y_lab_str = ("reflection with f variations for d = " + str(entry_d_s)
+                                           + " and n3 = " + str(entry_n3_s), "wavelength (nm)", "R")
+            tlt2_str, y2_lab_str = ("Transmission with f variations for d = " + str(entry_d_s)
+                                    + " and n3 = " + str(entry_n3_s), 'T')
             if entry_reflection_s == "on":
                 Graphic.graphic(vector_lambda_l, r_f_ll, lab_l=label_l, tlt_s=tlt_str, xla_s=xla_str, yla_s=y_lab_str)
             if entry_transmission_s == "on":
                 Graphic.graphic(vector_lambda_l, t_f_ll, lab_l=label_l, tlt_s=tlt2_str, xla_s=xla_str, yla_s=y2_lab_str)
             if entry_circle_s == 'on':
+                title_ = "Color Transmission in function of f which scale linearly from 0.02 to 0.09"
                 rgb_clr_llt = Light.rgb_i(f_r_list, [t_f_ll], n_v, vector_lambda_l)
-                Light.hsv_circle(rgb_clr_llt, hsv_list)
+                Light.hsv_circle(rgb_clr_llt, hsv_list, title_)
 
         elif calc_type == "R/lambda n3 var":
             r_n3_ll, t_n3_ll = Calculation.reflection_n_3(n_3_list, float(entry_f_s), epsilon_h_list, eta_list[0],
-                                                         n_substrate_list, k0_list, float(entry_d_s), entry_tm_te_s)
+                                                          n_substrate_list, k0_list, float(entry_d_s), entry_tm_te_s)
             label_l = ["n3 = " + str(n_3_list[i]) for i in range(len(n_3_list))]
-            tlt_str, xla_str, y_lab_str = "reflection in term of lambda with n3 variations", "wavelength (nm)", "R"
-            tlt2_str, y2_lab_str = "Transmission in term of lambda with n3 variations", 'T'
+            tlt_str, xla_str, y_lab_str = ("reflection with n3 variations for f = " + str(entry_f_s) +
+                                           " and d = " + str(entry_d_s), "wavelength (nm)", "R")
+            tlt2_str, y2_lab_str = ("Transmission with n3 variations for f = " + str(entry_f_s) +
+                                    " and d = " + str(entry_d_s), 'T')
             if entry_reflection_s == "on":
                 Graphic.graphic(vector_lambda_l, r_n3_ll, lab_l=label_l, tlt_s=tlt_str, xla_s=xla_str, yla_s=y_lab_str)
             if entry_transmission_s == "on":
                 Graphic.graphic(vector_lambda_l, t_n3_ll, lab_l=label_l, tlt_s=tlt2_str, xla_s=xla_str,
                                 yla_s=y2_lab_str)
             if entry_circle_s == 'on':
+                title_ = "Color Transmission in function of n3 which scale linearly from 1.00 to 1.33"
                 rgb_clr_llt = Light.rgb_i(n_3_list, [t_n3_ll], n_v, vector_lambda_l)
-                Light.hsv_circle(rgb_clr_llt, hsv_list)
+                Light.hsv_circle(rgb_clr_llt, hsv_list, title_)
 
         elif calc_type == "R/lambda d var":
             r_d_ll, t_d_ll = Calculation.reflection_d(float(entry_n3_s), float(entry_f_s), epsilon_h_list, eta_list[0],
-                                                     sd_ll["glass_n"], k0_list, d_r_list, entry_tm_te_s)
+                                                      sd_ll["glass_n"], k0_list, d_r_list, entry_tm_te_s)
             label_l = ["d = " + str(d_r_list[i]) for i in range(len(d_r_list))]
-            tlt_str, xla_str, y_lab_str = "reflection in term of lambda with d variations", "wavelength (nm)", "R"
-            tlt2_str, y2_lab_str = "Transmission in term of lambda with d variations", 'T'
+            tlt_str, xla_str, y_lab_str = ("reflection with d variations for f = " + str(entry_f_s) +
+                                           " and n3 = " + str(entry_n3_s), "wavelength (nm)", "R")
+            tlt2_str, y2_lab_str = ("Transmission with d variations for f = " + str(entry_f_s) +
+                                    " and n3 = " + str(entry_n3_s), 'T')
             if entry_reflection_s == "on":
                 Graphic.graphic(vector_lambda_l, r_d_ll, lab_l=label_l, tlt_s=tlt_str, xla_s=xla_str, yla_s=y_lab_str)
             if entry_transmission_s == "on":
                 Graphic.graphic(vector_lambda_l, t_d_ll, lab_l=label_l, tlt_s=tlt2_str, xla_s=xla_str, yla_s=y2_lab_str)
             if entry_circle_s == 'on':
+                title_ = "Color Transmission in function of d which scale linearly from 20nm to 140 nm"
                 rgb_clr_llt = Light.rgb_i(d_r_list, [t_d_ll], n_v, vector_lambda_l)
-                Light.hsv_circle(rgb_clr_llt, hsv_list)
+                Light.hsv_circle(rgb_clr_llt, hsv_list, title_)
 
         if calcul_type_s == "DR":
             dynamic_i, dynamic_w = Calculation.dynamic_range(f_r_list, epsilon_h_list, eta_list[0], n_substrate_list,
@@ -1121,7 +1133,7 @@ class Graphic:
             self.label.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
 
             self.color_checkbox_value_d = ctk.CTkOptionMenu(self.tabview3.tab("f variations"),
-                                                            values=["1000", "10000", "100000"], width=100)
+                                                            values=["100", "1000", "10000"], width=100)
             self.color_checkbox_value_d.grid(row=0, column=1, padx=0, pady=10, sticky="nsew")
 
             self.label = ctk.CTkLabel(self.tabview3.tab("f variations"), text="μm", font=font_name, width=80)
@@ -1314,7 +1326,7 @@ class Graphic:
             self.sensor_checkbox_3 = ctk.CTkCheckBox(self.tabview2.tab("Sensor"), text="Color Circle",
                                                      variable=self.check_circle, onvalue="on", offvalue="off",
                                                      width=90)
-            self.sensor_checkbox_3.grid(row=3, column=4, padx=(10, 0), pady=10, sticky="nsew")
+            self.sensor_checkbox_3.grid(row=3, column=4, columnspan=2, padx=(10, 0), pady=10, sticky="nsew")
 
             self.button_sensor_calcul = ctk.CTkButton(self.tabview2.tab("Sensor"), text="Calcul", width=80,
                                                       command=calcul_button_click)
