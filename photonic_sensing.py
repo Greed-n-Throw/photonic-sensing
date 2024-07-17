@@ -8,7 +8,7 @@ from typing import List
 from typing import Tuple
 import customtkinter as ctk
 from PIL import Image, ImageTk
-
+alpha: float = 0.0
 
 #  _v . _val : value / _l : list / _ll : list of list / _t : tuple / _lt : list of tuples / _b : bool / s : str
 #  / nda : array
@@ -339,49 +339,60 @@ class Calculation:
 
     @staticmethod
     def i_calc_f(f_l: List[float], k0_l: List[float], d_val: float, epsilon_h_l: List[float],
-                 eta_ll: List[list[float]]) -> List[List[List[float]]]:
+                 eta_ll: List[list[float]], t_val: str, alpha_1_val: float) -> List[List[List[float]]]:
         i_lll: List[List[List[float]]] = []
         for k in range(len(eta_ll)):
             n_eff_ll: List[List[float]] = Calculation.n_eff_calc(f_l, epsilon_h_l, eta_ll[k])
             k_ll = Calculation.k_calc(f_l, n_eff_ll)
             i_ll: List[List[float]] = []
-            for i in range(len(f_l)):
-                i_l = [np.exp(-2 * x * y * d_val) for x, y in zip(k0_l, k_ll[i])]
-                i_ll.append(i_l)
+            if t_val == "TE":
+                for i in range(len(f_l)):
+                    i_l = [np.exp(-2 * x * y * d_val) for x, y in zip(k0_l, k_ll[i])]
+                    i_ll.append(i_l)
+            if t_val == "TM":
+                for i in range(len(f_l)):
+                    i_l = [np.exp(-2 * x * y * d_val * math.cos(alpha_1_val)) for x, y in zip(k0_l, k_ll[i])]
+                    i_ll.append(i_l)
             i_lll.append(i_ll)
         return i_lll
 
     @staticmethod
-    def i_calc_d(f_s: float, k0_l: List[float], d_l: List[float], epsilon_h_l: List[float], eta_ll: List[list[float]]) \
+    def i_calc_d(f_s: float, k0_l: List[float], d_l: List[float], epsilon_h_l: List[float], eta_ll: List[list[float]]
+                 , t_val: str, alpha_1_val: float) \
             -> List[List[List[float]]]:
         i_lll: List[List[List[float]]] = []
         for k in range(len(eta_ll)):
             n_eff_ll: List[List[float]] = Calculation.n_eff_calc([f_s], epsilon_h_l, eta_ll[k])
             k_ll = Calculation.k_calc([f_s], n_eff_ll)
             i_ll: List[List[float]] = []
-            for d in d_l:
-                i_l = [np.exp(-2 * x * y * d) for x, y in zip(k0_l, k_ll[0])]
-                i_ll.append(i_l)
+            if t_val == "TE":
+                for d in d_l:
+                    i_l = [np.exp(-2 * x * y * d) for x, y in zip(k0_l, k_ll[0])]
+                    i_ll.append(i_l)
             i_lll.append(i_ll)
+            if t_val == "TM":
+                for d in d_l:
+                    i_l = [np.exp(-2 * x * y * d * math.cos(alpha_1_val)) for x, y in zip(k0_l, k_ll[0])]
+                    i_ll.append(i_l)
         return i_lll
 
     @staticmethod
     def reflection_f(n_3_val: float, f_l: List[float], epsilon_h_l: List[float], eta_l: List[float],
-                    dataset_l: List[float], k0_l: List[float], d_val: float, t_val: str) \
+                     n_1_l: List[float], k0_l: List[float], d_val: float, t_val: str, alpha_1_val: float) \
             -> Tuple[List[List[float]], List[List[float]]]:
         rr_f_ll: List[List[float]] = []
         tt_f_ll: List[List[float]] = []
         n_eff_ll: List[List[float]] = Calculation.n_eff_calc(f_l, epsilon_h_l, eta_l)
-        for n_l in n_eff_ll:
+        for n_2_l in n_eff_ll:
             if t_val == "TE":
-                r_21: List[float] = [(x - y) / (x + y) for x, y in zip(n_l, dataset_l)]
-                r_12: List[float] = [(y - x) / (x + y) for x, y in zip(n_l, dataset_l)]
-                r_23: List[float] = [(x - n_3_val) / (x + n_3_val) for x in n_l]
+                r_21: List[float] = [(x - y) / (x + y) for x, y in zip(n_2_l, n_1_l)]
+                r_12: List[float] = [(y - x) / (x + y) for x, y in zip(n_2_l, n_1_l)]
+                r_23: List[float] = [(x - n_3_val) / (x + n_3_val) for x in n_2_l]
                 t_21: List[float] = [(1 + x) for x in r_21]
                 t_12: List[float] = [(1 + x) for x in r_12]
                 t_23: List[float] = [(1 + x) for x in r_23]
-                e: List[complex] = [cmath.exp(2j * x * y * d_val) for x, y in zip(k0_l, n_l)]
-                e_1: List[complex] = [cmath.exp(1j * x * y * d_val) for x, y in zip(k0_l, n_l)]
+                e: List[complex] = [cmath.exp(2j * x * y * d_val) for x, y in zip(k0_l, n_2_l)]
+                e_1: List[complex] = [cmath.exp(1j * x * y * d_val) for x, y in zip(k0_l, n_2_l)]
 
                 r: List[float] = [((r1 + ((t1 * r2 * t2) * e2)) / (1 - (r3 * r2) * e2)) for r1, r2, r3, t1, t2, e2 in
                                   zip(
@@ -391,50 +402,61 @@ class Calculation:
 
                 t: List[float] = [((t1 * t2) * e1) / (1 - (r3 * r2) * e2) for r2, r3, t1, t2, e1, e2 in zip(
                     r_23, r_21, t_21, t_23, e_1, e)]
-                tt_l: List[float] = [abs(x) * abs(x) * n_3_val * n_3_val / (y * y) for x, y in zip(t, n_l)]
+                tt_l: List[float] = [abs(x) * abs(x) * n_3_val * n_3_val / (y * y) for x, y in zip(t, n_2_l)]
                 tt_f_ll.append(tt_l)
             elif t_val == "TM":
-                r_21: List[float] = [(1/x - 1/y) / (1/x + 1/y) for x, y in zip(n_l, dataset_l)]
-                r_12: List[float] = [(1/y - 1/x) / (1/x + 1/y) for x, y in zip(n_l, dataset_l)]
-                r_23: List[float] = [(1/x - 1/n_3_val) / (1/x + 1/n_3_val) for x in n_l]
-                t_21: List[float] = [(1 + x) for x in r_21]
+                alpha_2_l = [cmath.asin((n1/n2) * cmath.sin(alpha_1_val)) for n1, n2 in zip(n_1_l, n_2_l)]
+                alpha_3_l = [cmath.asin((n2/n_3_val) * cmath.sin(a2)) for n2, a2 in zip(n_2_l, alpha_2_l)]
+                alpha_4_l = [cmath.asin((n2/n1) * cmath.sin(a2)) for n1, n2, a2 in zip(n_1_l, n_2_l, alpha_2_l)]
+
+                r_12: List[float] = [(math.cos(alpha_1_val) / n1 - (cmath.cos(a2) / n2)) /
+                                     (math.cos(alpha_1_val) / n1 + (cmath.cos(a2) / n2))
+                                     for n1, n2, a2 in zip(n_1_l, n_2_l, alpha_2_l)]
+                r_21: List[float] = [(cmath.cos(a2)/n2 - cmath.cos(alpha_1_val)/n1) /
+                                     (cmath.cos(alpha_1_val)/n1 + cmath.cos(a2)/n2)
+                                     for n1, n2, a2 in zip(n_1_l, n_2_l, alpha_4_l)]
+                r_23: List[float] = [(cmath.cos(a2)/n2 - cmath.cos(a3)/n_3_val) /
+                                     (cmath.cos(a2)/n2 + cmath.cos(a3)/n_3_val)
+                                     for n2, a2, a3 in zip(n_2_l, alpha_2_l, alpha_3_l)]
                 t_12: List[float] = [(1 + x) for x in r_12]
+                t_21: List[float] = [(1 + x) for x in r_21]
                 t_23: List[float] = [(1 + x) for x in r_23]
-                e: List[complex] = [cmath.exp(2j * x * y * d_val) for x, y in zip(k0_l, n_l)]
-                e_1: List[complex] = [cmath.exp(1j * x * y * d_val) for x, y in zip(k0_l, n_l)]
+                e: List[complex] = [cmath.exp(2j * k0 * n2 * d_val * cmath.cos(a2))
+                                    for k0, n2, a2 in zip(k0_l, n_2_l, alpha_2_l)]
+                e_1: List[complex] = [cmath.exp(1j * k0 * n2 * d_val * cmath.cos(a2))
+                                      for k0, n2, a2 in zip(k0_l, n_2_l, alpha_2_l)]
 
                 r: List[float] = [((r1 + ((t1 * r2 * t2) * e2)) / (1 - (r3 * r2) * e2)) for r1, r2, r3, t1, t2, e2 in
-                                  zip(
-                                      r_12, r_23, r_21, t_12, t_21, e)]
+                                  zip(r_12, r_23, r_21, t_12, t_21, e)]
                 rr_l: List[float] = [abs(x) * abs(x) for x in r]
                 rr_f_ll.append(rr_l)
 
                 t: List[float] = [((t1 * t2) * e1) / (1 - (r3 * r2) * e2) for r2, r3, t1, t2, e1, e2 in zip(
                     r_23, r_21, t_21, t_23, e_1, e)]
-                tt_l: List[float] = [abs(x) * abs(x) * n_3_val * n_3_val / (y * y) for x, y in zip(t, n_l)]
+                tt_l: List[float] = [abs(x) * abs(x) * n_3_val * n_3_val / (y * y) for x, y in zip(t, n_2_l)]
                 tt_f_ll.append(tt_l)
         return rr_f_ll, tt_f_ll
 
     @staticmethod
-    def reflection_n_3(n_3_l: list, f_val: float, epsilon_h_l: list, eta_l: list, dataset_l: list, k0_l: list,
-                      d_val: float, t_val: str) -> Tuple[List[List[float]], List[List[float]]]:
+    def reflection_n_3(n_3_l: list, f_val: float, epsilon_h_l: list, eta_l: list, n_1_l: list, k0_l: list,
+                       d_val: float, t_val: str, alpha_1_val: float) -> Tuple[List[List[float]], List[List[float]]]:
         rr_n_3_ll: List[List[float]] = []
         tt_n3_ll: List[List[float]] = []
         n_eff_ll: List[List[float]] = Calculation.n_eff_calc([f_val], epsilon_h_l, eta_l)
-        n_eff_l: List[float] = n_eff_ll[0]
+        n_2_l: List[float] = n_eff_ll[0]
 
         if t_val == "TE":
-            r_12: List[float] = [(y - x) / (x + y) for x, y in zip(n_eff_l, dataset_l)]
+            r_12: List[float] = [(y - x) / (x + y) for x, y in zip(n_2_l, n_1_l)]
             t_12: List[float] = [(1 + x) for x in r_12]
 
-            r_21: List[float] = [(x - y) / (x + y) for x, y in zip(n_eff_l, dataset_l)]
+            r_21: List[float] = [(x - y) / (x + y) for x, y in zip(n_2_l, n_1_l)]
             t_21: List[float] = [(1 + x) for x in r_21]
 
-            e: List[complex] = [cmath.exp(2j * x * y * d_val) for x, y in zip(k0_l, n_eff_l)]
-            e_1: List[complex] = [cmath.exp(1j * x * y * d_val) for x, y in zip(k0_l, n_eff_l)]
+            e: List[complex] = [cmath.exp(2j * x * y * d_val) for x, y in zip(k0_l, n_2_l)]
+            e_1: List[complex] = [cmath.exp(1j * x * y * d_val) for x, y in zip(k0_l, n_2_l)]
 
             for n_3_val in n_3_l:
-                r_23: List[float] = [(x + (-n_3_val)) / (x + n_3_val) for x in n_eff_l]
+                r_23: List[float] = [(x + (-n_3_val)) / (x + n_3_val) for x in n_2_l]
                 t_23: List[float] = [(1 + x) for x in r_23]
 
                 r: List[float] = [((r1 + ((t1 * r2 * t2) * e2)) / (1 - (r3 * r2) * e2)) for r1, r2, r3, t1, t2, e2 in zip(
@@ -444,21 +466,33 @@ class Calculation:
 
                 t: List[float] = [((t1 * t2) * e1) / (1 - (r3 * r2) * e2) for r2, r3, t1, t2, e1, e2 in zip(
                     r_23, r_21, t_21, t_23, e_1, e)]
-                tt_l: List[float] = [abs(x) * abs(x) * n_3_val * n_3_val / (y * y) for x, y in zip(t, n_eff_l)]
+                tt_l: List[float] = [abs(x) * abs(x) * n_3_val * n_3_val / (y * y) for x, y in zip(t, n_2_l)]
                 tt_n3_ll.append(tt_l)
 
         elif t_val == "TM":
-            r_12: List[float] = [(1/y - 1/x) / (1/x + 1/y) for x, y in zip(n_eff_l, dataset_l)]
-            t_12: List[float] = [(1 + x) for x in r_12]
+            alpha_2_l = [cmath.asin((n1 / n2) * cmath.sin(alpha_1_val)) for n1, n2 in zip(n_1_l, n_2_l)]
+            alpha_4_l = [cmath.asin((n2 / n1) * cmath.sin(a2)) for n1, n2, a2 in zip(n_1_l, n_2_l, alpha_2_l)]
 
-            r_21: List[float] = [(1/x - 1/y) / (1/x + 1/y) for x, y in zip(n_eff_l, dataset_l)]
+            r_12: List[float] = [(math.cos(alpha_1_val) / n1 - (cmath.cos(a2) / n2)) /
+                                 (math.cos(alpha_1_val) / n1 + (cmath.cos(a2) / n2))
+                                 for n1, n2, a2 in zip(n_1_l, n_2_l, alpha_2_l)]
+            r_21: List[float] = [(cmath.cos(a2) / n2 - math.cos(alpha_1_val) / n1) /
+                                 (math.cos(alpha_1_val) / n1 + cmath.cos(a2) / n2)
+                                 for n1, n2, a2 in zip(n_1_l, n_2_l, alpha_4_l)]
+
+            t_12: List[float] = [(1 + x) for x in r_12]
             t_21: List[float] = [(1 + x) for x in r_21]
 
-            e: List[complex] = [cmath.exp(2j * x * y * d_val) for x, y in zip(k0_l, n_eff_l)]
-            e_1: List[complex] = [cmath.exp(1j * x * y * d_val) for x, y in zip(k0_l, n_eff_l)]
+            e: List[complex] = [cmath.exp(2j * k0 * n2 * d_val * cmath.cos(a2))
+                                for k0, n2, a2 in zip(k0_l, n_2_l, alpha_2_l)]
+            e_1: List[complex] = [cmath.exp(1j * k0 * n2 * d_val * cmath.cos(a2))
+                                  for k0, n2, a2 in zip(k0_l, n_2_l, alpha_2_l)]
 
             for n_3_val in n_3_l:
-                r_23: List[float] = [(1/x + (-1/n_3_val)) / (1/x + 1/n_3_val) for x in n_eff_l]
+                alpha_3_l = [cmath.asin((n2 / n_3_val) * cmath.sin(a2)) for n2, a2 in zip(n_2_l, alpha_2_l)]
+                r_23: List[float] = [(cmath.cos(a2) / n2 - cmath.cos(a3) / n_3_val) /
+                                     (cmath.cos(a2) / n2 + cmath.cos(a3) / n_3_val)
+                                     for n2, a2, a3 in zip(n_2_l, alpha_2_l, alpha_3_l)]
                 t_23: List[float] = [(1 + x) for x in r_23]
 
                 r: List[float] = [((r1 + ((t1 * r2 * t2) * e2)) / (1 - (r3 * r2) * e2)) for r1, r2, r3, t1, t2, e2 in
@@ -469,32 +503,33 @@ class Calculation:
 
                 t: List[float] = [((t1 * t2) * e1) / (1 - (r3 * r2) * e2) for r2, r3, t1, t2, e1, e2 in zip(
                     r_23, r_21, t_21, t_23, e_1, e)]
-                tt_l: List[float] = [abs(x) * abs(x) * n_3_val * n_3_val / (y * y) for x, y in zip(t, n_eff_l)]
+                tt_l: List[float] = [abs(x) * abs(x) * n_3_val * n_3_val / (y * y) for x, y in zip(t, n_2_l)]
                 tt_n3_ll.append(tt_l)
 
         return rr_n_3_ll, tt_n3_ll
 
     @staticmethod
-    def reflection_d(n_3_val: float, f_val: float, epsilon_h_l: List[float], eta_l: List[float], dataset_l: List[float],
-                    k0_l: List[float], d_l: List[float], t_val: str) -> Tuple[List[List[float]], List[List[float]]]:
+    def reflection_d(n_3_val: float, f_val: float, epsilon_h_l: List[float], eta_l: List[float], n_1_l: List[float],
+                     k0_l: List[float], d_l: List[float], t_val: str, alpha_1_val: float) \
+            -> Tuple[List[List[float]], List[List[float]]]:
         rr_d_ll: List[List[float]] = []
         tt_d_ll: List[List[float]] = []
         n_eff_ll: List[List[float]] = Calculation.n_eff_calc([f_val], epsilon_h_l, eta_l)
-        n_eff_l: List[float] = n_eff_ll[0]
+        n_2_l: List[float] = n_eff_ll[0]
 
         if t_val == "TE":
-            r_12: List[float] = [(y - x) / (x + y) for x, y in zip(n_eff_l, dataset_l)]
+            r_12: List[float] = [(y - x) / (x + y) for x, y in zip(n_2_l, n_1_l)]
             t_12: List[float] = [(1 + x) for x in r_12]
 
-            r_21: List[float] = [(x - y) / (x + y) for x, y in zip(n_eff_l, dataset_l)]
+            r_21: List[float] = [(x - y) / (x + y) for x, y in zip(n_2_l, n_1_l)]
             t_21: List[float] = [(1 + x) for x in r_21]
 
-            r_23: List[float] = [(x + (-n_3_val)) / (x + n_3_val) for x in n_eff_l]
+            r_23: List[float] = [(x + (-n_3_val)) / (x + n_3_val) for x in n_2_l]
             t_23: List[float] = [(1 + x) for x in r_23]
 
             for d_val in d_l:
-                e: List[complex] = [cmath.exp(2j * x * y * d_val) for x, y in zip(k0_l, n_eff_l)]
-                e_1: List[complex] = [cmath.exp(1j * x * y * d_val) for x, y in zip(k0_l, n_eff_l)]
+                e: List[complex] = [cmath.exp(2j * x * y * d_val) for x, y in zip(k0_l, n_2_l)]
+                e_1: List[complex] = [cmath.exp(1j * x * y * d_val) for x, y in zip(k0_l, n_2_l)]
 
                 r: List[float] = [((r1 + ((t1 * r2 * t2) * e2)) / (1 - (r3 * r2) * e2)) for r1, r2, r3, t1, t2, e2 in zip(
                     r_12, r_23, r_21, t_12, t_21, e)]
@@ -503,22 +538,34 @@ class Calculation:
 
                 t: List[float] = [((t1 * t2) * e1) / (1 - (r3 * r2) * e2) for r2, r3, t1, t2, e1, e2 in zip(
                     r_23, r_21, t_21, t_23, e_1, e)]
-                tt_l: List[float] = [abs(x) * abs(x) * n_3_val * n_3_val / (y * y) for x, y in zip(t, n_eff_l)]
+                tt_l: List[float] = [abs(x) * abs(x) * n_3_val * n_3_val / (y * y) for x, y in zip(t, n_2_l)]
                 tt_d_ll.append(tt_l)
 
         elif t_val == "TM":
-            r_12: List[float] = [(1/y - 1/x) / (1/x + 1/y) for x, y in zip(n_eff_l, dataset_l)]
+            alpha_2_l = [cmath.asin((n1 / n2) * cmath.sin(alpha_1_val)) for n1, n2 in zip(n_1_l, n_2_l)]
+            alpha_3_l = [cmath.asin((n2 / n_3_val) * cmath.sin(a2)) for n2, a2 in zip(n_2_l, alpha_2_l)]
+            alpha_4_l = [cmath.asin((n2 / n1) * cmath.sin(a2)) for n1, n2, a2 in zip(n_1_l, n_2_l, alpha_2_l)]
+
+            r_12: List[float] = [(math.cos(alpha_1_val) / n1 - (cmath.cos(a2) / n2)) /
+                                 (math.cos(alpha_1_val) / n1 + (cmath.cos(a2) / n2))
+                                 for n1, n2, a2 in zip(n_1_l, n_2_l, alpha_2_l)]
             t_12: List[float] = [(1 + x) for x in r_12]
 
-            r_21: List[float] = [(1/x - 1/y) / (1/x + 1/y) for x, y in zip(n_eff_l, dataset_l)]
+            r_21: List[float] = [(cmath.cos(a2) / n2 - math.cos(alpha_1_val) / n1) /
+                                 (math.cos(alpha_1_val) / n1 + cmath.cos(a2) / n2)
+                                 for n1, n2, a2 in zip(n_1_l, n_2_l, alpha_4_l)]
             t_21: List[float] = [(1 + x) for x in r_21]
 
-            r_23: List[float] = [(1/x + (-1/n_3_val)) / (1/x + 1/n_3_val) for x in n_eff_l]
+            r_23: List[float] = [(cmath.cos(a2) / n2 - cmath.cos(a3) / n_3_val) /
+                                 (cmath.cos(a2) / n2 + cmath.cos(a3) / n_3_val)
+                                 for n2, a2, a3 in zip(n_2_l, alpha_2_l, alpha_3_l)]
             t_23: List[float] = [(1 + x) for x in r_23]
 
             for d_val in d_l:
-                e: List[complex] = [cmath.exp(2j * x * y * d_val) for x, y in zip(k0_l, n_eff_l)]
-                e_1: List[complex] = [cmath.exp(1j * x * y * d_val) for x, y in zip(k0_l, n_eff_l)]
+                e: List[complex] = [cmath.exp(2j * k0 * n2 * d_val * cmath.cos(a2))
+                                    for k0, n2, a2 in zip(k0_l, n_2_l, alpha_2_l)]
+                e_1: List[complex] = [cmath.exp(1j * k0 * n2 * d_val * cmath.cos(a2))
+                                      for k0, n2, a2 in zip(k0_l, n_2_l, alpha_2_l)]
 
                 r: List[float] = [((r1 + ((t1 * r2 * t2) * e2)) / (1 - (r3 * r2) * e2)) for r1, r2, r3, t1, t2, e2 in
                                   zip(
@@ -528,14 +575,14 @@ class Calculation:
 
                 t: List[float] = [((t1 * t2) * e1) / (1 - (r3 * r2) * e2) for r2, r3, t1, t2, e1, e2 in zip(
                     r_23, r_21, t_21, t_23, e_1, e)]
-                tt_l: List[float] = [abs(x) * abs(x) * n_3_val * n_3_val / (y * y) for x, y in zip(t, n_eff_l)]
+                tt_l: List[float] = [abs(x) * abs(x) * n_3_val * n_3_val / (y * y) for x, y in zip(t, n_2_l)]
                 tt_d_ll.append(tt_l)
 
         return rr_d_ll, tt_d_ll
 
     @staticmethod
-    def dynamic_range(f_l: List[float], epsilon_h_l: List[float], eta_l: List[float], dataset_l: List[float],
-                      k0_l: List[float], d_l: List[float], t_val: str) -> Tuple[List[List[float]], List[List[float]]]:
+    def dynamic_range(f_l: List[float], epsilon_h_l: List[float], eta_l: List[float], n_1_l: List[float],
+                      k0_l: List[float], d_l: List[float], t_val: str, alpha_1_val: float) -> Tuple[List[List[float]], List[List[float]]]:
         n_eff_ll: List[List[float]] = Calculation.n_eff_calc(f_l, epsilon_h_l, eta_l)
         crb_i_ll: List[List[float]] = []
         crb_w_ll: List[List[float]] = []
@@ -544,8 +591,8 @@ class Calculation:
             for i in range(len(f_l)):
                 u: float = int(i / (len(f_l) + 1) * 1000) / 10
                 print(str(str(u) + '%'))
-                r_21: List[float] = [(x - y) / (x + y) for x, y in zip(n_eff_ll[i], dataset_l)]
-                r_12: List[float] = [(y - x) / (x + y) for x, y in zip(n_eff_ll[i], dataset_l)]
+                r_21: List[float] = [(x - y) / (x + y) for x, y in zip(n_eff_ll[i], n_1_l)]
+                r_12: List[float] = [(y - x) / (x + y) for x, y in zip(n_eff_ll[i], n_1_l)]
                 t_12: List[float] = [(1 + x) for x in r_12]
                 t_21: List[float] = [(1 + x) for x in r_21]
                 r_23_133: List[float] = [(x - 1.33) / (x + 1.33) for x in n_eff_ll[i]]
@@ -582,12 +629,28 @@ class Calculation:
             for i in range(len(f_l)):
                 u: float = int(i / (len(f_l) + 1) * 1000) / 10
                 print(str(str(u) + '%'))
-                r_21: List[float] = [(1/x - 1/y) / (1/x + 1/y) for x, y in zip(n_eff_ll[i], dataset_l)]
-                r_12: List[float] = [(1/y - 1/x) / (1/x + 1/y) for x, y in zip(n_eff_ll[i], dataset_l)]
+
+                alpha_2_l = [cmath.asin((n1 / n2) * cmath.sin(alpha_1_val)) for n1, n2 in zip(n_1_l, n_eff_ll[i])]
+                alpha_3_133_l = [cmath.asin((n2 / 1.33) * cmath.sin(a2)) for n2, a2 in zip(n_eff_ll[i], alpha_2_l)]
+                alpha_3_100_l = [cmath.asin((n2 / 1.00) * cmath.sin(a2)) for n2, a2 in zip(n_eff_ll[i], alpha_2_l)]
+                alpha_4_l = [cmath.asin((n2 / n1) * cmath.sin(a2)) for n1, n2, a2 in zip(n_1_l, n_eff_ll[i], alpha_2_l)]
+
+                r_12: List[float] = [(math.cos(alpha_1_val) / n1 - (cmath.cos(a2) / n2)) /
+                                     (math.cos(alpha_1_val) / n1 + (cmath.cos(a2) / n2))
+                                     for n1, n2, a2 in zip(n_1_l, n_eff_ll[i], alpha_2_l)]
+                r_21: List[float] = [(cmath.cos(a2) / n2 - cmath.cos(alpha_1_val) / n1) /
+                                     (cmath.cos(alpha_1_val) / n1 + cmath.cos(a2) / n2)
+                                     for n1, n2, a2 in zip(n_1_l, n_eff_ll[i], alpha_4_l)]
+
                 t_12: List[float] = [(1 + x) for x in r_12]
                 t_21: List[float] = [(1 + x) for x in r_21]
-                r_23_133: List[float] = [(1/x - 1/1.33) / (1/x + 1/1.33) for x in n_eff_ll[i]]
-                r_23_100: List[float] = [(1/x - 1) / (1/x + 1) for x in n_eff_ll[i]]
+                r_23_133: List[float] = [(cmath.cos(a2) / n2 - cmath.cos(a3) / 1.33) /
+                                     (cmath.cos(a2) / n2 + cmath.cos(a3) / 1.33)
+                                     for n2, a2, a3 in zip(n_eff_ll[i], alpha_2_l, alpha_3_133_l)]
+
+                r_23_100: List[float] = [(cmath.cos(a2) / n2 - cmath.cos(a3) / 1.00) /
+                                           (cmath.cos(a2) / n2 + cmath.cos(a3) / 1.00)
+                                           for n2, a2, a3 in zip(n_eff_ll[i], alpha_2_l, alpha_3_100_l)]
 
                 crb_i_l: List[float] = []
                 crb_w_l: List[float] = []
@@ -640,7 +703,7 @@ class Calculation:
         n_ll: List[list[float]] = []
         k_s_ll: List[list[float]] = []
         k_ll: List[list[float]] = []
-        n_substrate_list: List[float] = []
+        n_1_list: List[float] = []
 
         if entry_host_s == "pmma":
             epsilon_h_list = sds_ll["pm_ma_n_square"]
@@ -674,7 +737,9 @@ class Calculation:
             k_s_ll.append(sds_ll["silver_k_square"])
 
         if entry_substrate_s == "glass":
-            n_substrate_list = sd_ll["glass_n"]
+            n_1_list = sd_ll["glass_n"]
+        elif entry_substrate_s == "pmma":
+            n_1_list = sd_ll["pm_ma_n"]
 
         eta_list: List[List[float]] = []
         for i in range(len(n_ll)):
@@ -685,7 +750,7 @@ class Calculation:
         calc_type: str = calcul_type_s
 
         if calc_type == 'I f var':
-            intensity_lll = Calculation.i_calc_f(f_i_list, k0_list, float(entry_d_s), epsilon_h_list, eta_list)
+            intensity_lll = Calculation.i_calc_f(f_i_list, k0_list, float(entry_d_s), epsilon_h_list, eta_list, entry_tm_te_s, alpha)
 
             '''label_l = ["f = " + str(f_i_list[i]) for i in range(len(f_i_list))]
             tlt_str, xla_str, y_lab_str = "I f var", "wavelength (nm)", "intensity"
@@ -698,14 +763,14 @@ class Calculation:
             Light.hsv_circle(rgb_clr_llt, hsv_list, title_)
 
         elif calc_type == 'I d var':
-            intensity_lll = Calculation.i_calc_d(float(entry_f_s), k0_list, d_i_list, epsilon_h_list, eta_list)
+            intensity_lll = Calculation.i_calc_d(float(entry_f_s), k0_list, d_i_list, epsilon_h_list, eta_list, entry_tm_te_s, alpha)
             title_ = "Color Transmission in function of d which scale linearly from 0.1 mm to 1 cm"
             rgb_clr_llt = Light.rgb_i(d_i_list, intensity_lll, n_v, vector_lambda_l)
             Light.hsv_circle(rgb_clr_llt, hsv_list, title_)
 
         elif calc_type == "R/lambda f var":
             r_f_ll, t_f_ll = Calculation.reflection_f(float(entry_n3_s), f_r_list, epsilon_h_list, eta_list[0],
-                                                      n_substrate_list, k0_list, float(entry_d_s), entry_tm_te_s)
+                                                      n_1_list, k0_list, float(entry_d_s), entry_tm_te_s, alpha)
             label_l = ["f = " + str(f_r_list[i]) for i in range(len(f_r_list))]
             tlt_str, xla_str, y_lab_str = ("reflection with f variations for d = " + str(entry_d_s)
                                            + " and n3 = " + str(entry_n3_s), "wavelength (nm)", "R")
@@ -722,7 +787,7 @@ class Calculation:
 
         elif calc_type == "R/lambda n3 var":
             r_n3_ll, t_n3_ll = Calculation.reflection_n_3(n_3_list, float(entry_f_s), epsilon_h_list, eta_list[0],
-                                                          n_substrate_list, k0_list, float(entry_d_s), entry_tm_te_s)
+                                                          n_1_list, k0_list, float(entry_d_s), entry_tm_te_s, alpha)
             label_l = ["n3 = " + str(n_3_list[i]) for i in range(len(n_3_list))]
             tlt_str, xla_str, y_lab_str = ("reflection with n3 variations for f = " + str(entry_f_s) +
                                            " and d = " + str(entry_d_s), "wavelength (nm)", "R")
@@ -740,7 +805,7 @@ class Calculation:
 
         elif calc_type == "R/lambda d var":
             r_d_ll, t_d_ll = Calculation.reflection_d(float(entry_n3_s), float(entry_f_s), epsilon_h_list, eta_list[0],
-                                                      sd_ll["glass_n"], k0_list, d_r_list, entry_tm_te_s)
+                                                      sd_ll["glass_n"], k0_list, d_r_list, entry_tm_te_s, alpha)
             label_l = ["d = " + str(d_r_list[i]) for i in range(len(d_r_list))]
             tlt_str, xla_str, y_lab_str = ("reflection with d variations for f = " + str(entry_f_s) +
                                            " and n3 = " + str(entry_n3_s), "wavelength (nm)", "R")
@@ -756,8 +821,8 @@ class Calculation:
                 Light.hsv_circle(rgb_clr_llt, hsv_list, title_)
 
         if calcul_type_s == "DR":
-            dynamic_i, dynamic_w = Calculation.dynamic_range(f_r_list, epsilon_h_list, eta_list[0], n_substrate_list,
-                                                             k0_list, d_dr_list, entry_tm_te_s)
+            dynamic_i, dynamic_w = Calculation.dynamic_range(f_r_list, epsilon_h_list, eta_list[0], n_1_list,
+                                                             k0_list, d_dr_list, entry_tm_te_s, alpha)
             label_l = ["f = " + str(f_r_list[i]) for i in range(len(f_r_list))]
             if entry_dri_s == "on":
                 tlt_str, xla_str, y_lab_str = "Intensity Dynamic Range", "thickness d", "Intensity"
@@ -795,7 +860,7 @@ class Graphic:
         def __init__(self):
             super().__init__()
 
-            def calcul_button_click():
+            def calcul_button_click() -> None:
                 if self.tabview2.get() == "Color in glass":
                     if self.tabview3.get() == "f variations":
                         self.calcul_type = "I f var"
@@ -911,10 +976,10 @@ class Graphic:
                                                    self.te_tm_button.get()
                                                    )
 
-            def print_button_click():
+            def print_button_click() -> None:
                 Graphic.print_graph()
 
-            def checkbox_clicked_color(checkbox):
+            def checkbox_clicked_color(checkbox) -> None:
                 if checkbox == self.color_checkbox_1:
                     if (self.iron_entry_color.get() == self.copper_entry_color.get() == self.plat_entry_color.get() ==
                             self.silver_entry_color.get() == "off"):
@@ -936,7 +1001,7 @@ class Graphic:
                             self.plat_entry_color.get() == "off"):
                         self.silver_entry_color.set("on")
 
-            def checkbox_clicked(checkbox):
+            def checkbox_clicked(checkbox) -> None:
                 checkboxes = [self.sensor_checkbox_1, self.sensor_checkbox_2, self.sensor_checkbox_3,
                               self.sensor_checkbox_4, self.sensor_checkbox_5]
                 for cb in checkboxes:
@@ -972,19 +1037,56 @@ class Graphic:
                             == self.plat_entry_sensor.get() == "off"):
                         self.silver_entry_sensor.set("on")
 
-            def image_change():
-                if self.tabview2.get() == "Color in glass":
+            def image_change() -> None:
+                if self.tabview2.get() == "Color in glass" and self.te_tm_button.get() == "TE":
                     self.image = Image.open("res/image/schema_i.png")
                     self.image = self.image.resize((475, 250))
                     self.photo = ImageTk.PhotoImage(self.image)
                     self.label_image = ctk.CTkLabel(self.frame, image=self.photo, text="")
                     self.label_image.grid(row=0, column=0, pady=(25, 0), padx=(25, 0), columnspan=5)
-                elif self.tabview2.get() == "Sensor":
+                elif self.tabview2.get() == "Sensor" and self.te_tm_button.get() == "TE":
                     self.image = Image.open("res/image/schema_sensor.png")
                     self.image = self.image.resize((475, 250))
                     self.photo = ImageTk.PhotoImage(self.image)
                     self.label_image = ctk.CTkLabel(self.frame, image=self.photo, text="")
                     self.label_image.grid(row=0, column=0, pady=(25, 0), padx=(25, 0), columnspan=5)
+                elif self.tabview2.get() == "Color in glass" and self.te_tm_button.get() == "TM":
+                    self.image = Image.open("res/image/schema_i_tm.png")
+                    self.image = self.image.resize((475, 250))
+                    self.photo = ImageTk.PhotoImage(self.image)
+                    self.label_image = ctk.CTkLabel(self.frame, image=self.photo, text="")
+                    self.label_image.grid(row=0, column=0, pady=(25, 0), padx=(25, 0), columnspan=5)
+                elif self.tabview2.get() == "Sensor" and self.te_tm_button.get() == "TM":
+                    self.image = Image.open("res/image/schema_sensor_tm.png")
+                    self.image = self.image.resize((475, 250))
+                    self.photo = ImageTk.PhotoImage(self.image)
+                    self.label_image = ctk.CTkLabel(self.frame, image=self.photo, text="")
+                    self.label_image.grid(row=0, column=0, pady=(25, 0), padx=(25, 0), columnspan=5)
+
+            def te_tm_alpha(value=None) -> None:
+                def push_alpha() -> None:
+                    global alpha
+                    alpha = float(self.alpha.get())
+                    alpha = alpha * math.pi / 180
+
+                if value == "TM":
+                    self.alpha = ctk.CTkEntry(master=self.frame, placeholder_text="alpha", height=25, width=40)
+                    self.alpha.grid(row=1, column=6, padx=0, pady=0, sticky="sw")
+
+                    self.alpha_button = ctk.CTkButton(master=self.frame, text='degree', border_width=2, height=25,
+                                                      width=40, command=push_alpha)
+                    self.alpha_button.grid(row=1, column=6, padx=0, pady=0, sticky="se")
+                else:
+                    if hasattr(self, 'alpha'):
+                        self.alpha.grid_remove()
+                        del self.alpha
+                    if hasattr(self, 'alpha_button'):
+                        self.alpha_button.grid_remove()
+                        del self.alpha_button
+
+            def te_tm_alpha_and_image_change(value=None):
+                te_tm_alpha(value)
+                image_change()
 
             font_name = ("Roboto", 12)
             self.title("CustomTkinter learning")
@@ -1019,12 +1121,12 @@ class Graphic:
             self.label_lambda_signe = ctk.CTkLabel(master=self.frame, text="μm", font=font_name, width=80)
             self.label_lambda_signe.grid(row=1, column=4, pady=(40, 0), padx=0, sticky="nsew")
 
-            self.te_tm_button = ctk.CTkSegmentedButton(master=self.frame, height=25, width=100)
-            self.te_tm_button.grid(row=1, column=6, pady=(40, 0), padx=0, sticky="nsew")
+            self.te_tm_button = ctk.CTkSegmentedButton(master=self.frame, height=25, width=100, command=te_tm_alpha_and_image_change)
+            self.te_tm_button.grid(row=1, column=6, pady=0, padx=0, sticky="n")
             self.te_tm_button.configure(values=["TE", "TM"])
             self.te_tm_button.set("TE")
 
-            self.tabview = ctk.CTkTabview(master=self.frame, height=250, width=250)
+            self.tabview = ctk.CTkTabview(master=self.frame, height=100, width=250)
             self.tabview.grid(row=0, column=5, columnspan=3, padx=25, pady=(10, 0), sticky="n")
             self.tabview.add("n1")
             self.tabview.add("n2")
@@ -1292,19 +1394,19 @@ class Graphic:
             self.label = ctk.CTkLabel(self.tabview4.tab("Dynamic Range"), text="", font=font_name, width=133)
             self.label.grid(row=0, column=0, padx=0, pady=10, sticky="nsew")
 
-            self.sensor_checkbox_dri = ctk.CTkCheckBox(self.tabview4.tab("Dynamic Range"), text="DR i",
+            self.sensor_checkbox_dri = ctk.CTkCheckBox(self.tabview4.tab("Dynamic Range"), text="Intensity Dynamic Range",
                                                        variable=self.check_dri, onvalue="on", offvalue="off")
-            self.sensor_checkbox_dri.grid(row=0, column=0, padx=(25, 0), pady=10, sticky="nsew")
+            self.sensor_checkbox_dri.grid(row=0, column=0, columnspan=2, padx=(25, 0), pady=10, sticky="nsew")
 
             self.label = ctk.CTkLabel(self.tabview4.tab("Dynamic Range"), text="", font=font_name, width=133)
             self.label.grid(row=0, column=2, padx=0, pady=10, sticky="nsew")
 
             self.label = ctk.CTkLabel(self.tabview4.tab("Dynamic Range"), text="", font=font_name, width=133)
-            self.label.grid(row=1, column=0, padx=0, pady=10, sticky="nsew")
+            self.label.grid(row=1, column=0, padx=0,  pady=10, sticky="nsew")
 
-            self.sensor_checkbox_drw = ctk.CTkCheckBox(self.tabview4.tab("Dynamic Range"), text="DR w",
+            self.sensor_checkbox_drw = ctk.CTkCheckBox(self.tabview4.tab("Dynamic Range"), text="Wavelength Dynamic Range",
                                                        variable=self.check_drw, onvalue="on", offvalue="off")
-            self.sensor_checkbox_drw.grid(row=1, column=0, padx=(25, 0), pady=10, sticky="nsew")
+            self.sensor_checkbox_drw.grid(row=1, column=0, columnspan=2, padx=(25, 0), pady=10, sticky="nsew")
 
             self.label = ctk.CTkLabel(self.tabview4.tab("Dynamic Range"), text="", font=font_name, width=133)
             self.label.grid(row=1, column=2, padx=0, pady=10, sticky="nsew")
