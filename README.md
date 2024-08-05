@@ -17,8 +17,9 @@ If you need specific information on n1, n2, n3, f, d, TE, TM click on it specifi
 - select the application ("color in glass" or "sensor")
 - choose the host, the substrate and the metal(s) observed
 - choose the variation to be observed (variation of f, n3, d) or the dynamic range
-- click on calcul
-- click on print
+- click on calculation
+- click on export data for make a csv file with the data of the last calcul
+- click on show
 
 ## Prerequisites
 

@@ -4,12 +4,17 @@ import csv
 import math
 import cmath
 import colorsys
+import os
 from typing import List
 from typing import Tuple
 import customtkinter as ctk
 from PIL import Image, ImageTk
+
+# variables globales :
 alpha: float = 0.0
 alpha_degrees: float = 0.0
+data: list = []
+name: str = ""
 
 #  _v . _val : value / _l : list / _ll : list of list / _t : tuple / _lt : list of tuples / _b : bool / s : str
 #  / nda : array
@@ -29,8 +34,14 @@ class ConstVal:
         d_i_l = list(np.linspace(100, 10000, 21))
         f_r_l = [0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09]
         d_r_l = list(np.linspace(0.020, 0.140, 13))
-        d_dr_l = list(np.linspace(0.020, 0.140, 121))
+        for i in range(len(d_r_l)):
+            d_r_l[i] = int(d_r_l[i] * 1000) / 1000
+        d_dr_l = list(np.linspace(0.020, 0.140, 61))
+        for i in range(len(d_dr_l)):
+            d_dr_l[i] = int(d_dr_l[i] * 1000) / 1000
         n_3_l = list(np.linspace(1.0, 1.33, 12))
+        for i in range(len(n_3_l)):
+            n_3_l[i] = int(n_3_l[i]*100)/100
         return f_i_l, d_i_l, f_r_l, d_r_l, d_dr_l, n_3_l
 
     @staticmethod
@@ -318,6 +329,17 @@ class Material:
                     "plat_k_square": smooth_dataset_square_l[9],
                     "silver_n_square": smooth_dataset_square_l[10],
                     "silver_k_square": smooth_dataset_square_l[11]})
+
+    @staticmethod
+    def save_list_to_csv():
+        directory = 'export_data'
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        file_path = os.path.join(directory, name)
+
+        with open(file_path, mode='w', newline='', encoding='utf-8') as file:
+            writer = csv.writer(file)
+            writer.writerows(data)
 
 
 class Calculation:
@@ -695,6 +717,12 @@ class Calculation:
         f_i_list, d_i_list, f_r_list, d_r_list, d_dr_list, n_3_list = ConstVal.set_list()
         hsv_list = ConstVal.set_hsv_list(entry_gold_s, entry_iron_s, entry_copper_s, entry_plat_s, entry_silver_s)
 
+        global data
+        data = []
+
+        global name
+        name = ""
+
         print("calcul start")
         start_v: float = float(entry_start_s)
         stop_v: float = float(entry_stop_s)
@@ -758,25 +786,31 @@ class Calculation:
         if calc_type == 'I f var':
             intensity_lll = Calculation.i_calc_f(f_i_list, k0_list, float(entry_d_s), epsilon_h_list, eta_list,
                                                  entry_tm_te_s, alpha)
+            data = intensity_lll + []
             rgb_clr_llt = Light.rgb_i(f_i_list, intensity_lll, n_v, vector_lambda_l)
             if entry_tm_te_s == "TE":
                 title_ = "Color Transmission in function of f which scale linearly from 0.0000001 to 0.1 for TE"
+                name = title_+".csv"
                 Light.hsv_circle(rgb_clr_llt, hsv_list, title_)
             elif entry_tm_te_s == "TM":
                 title_ = ("Color Transmission in function of f which scale linearly from 0.0000001 to 0.1 for TM "
                           "with alpha = " + str(alpha_degrees))
+                name = title_+".csv"
                 Light.hsv_circle(rgb_clr_llt, hsv_list, title_)
 
         elif calc_type == 'I d var':
             intensity_lll = Calculation.i_calc_d(float(entry_f_s), k0_list, d_i_list, epsilon_h_list, eta_list,
                                                  entry_tm_te_s, alpha)
+            data = intensity_lll + []
             rgb_clr_llt = Light.rgb_i(d_i_list, intensity_lll, n_v, vector_lambda_l)
             if entry_tm_te_s == "TE":
                 title_ = "Color Transmission in function of d which scale linearly from 0.1 mm to 1 cm for TE"
+                name = title_+".csv"
                 Light.hsv_circle(rgb_clr_llt, hsv_list, title_)
             elif entry_tm_te_s == "TM":
                 title_ = ("Color Transmission in function of d which scale linearly from 0.1 mm to 1 cm for TM "
                           "with alpha = " + str(alpha_degrees))
+                name = title_+".csv"
                 Light.hsv_circle(rgb_clr_llt, hsv_list, title_)
 
         elif calc_type == "R/lambda f var":
@@ -795,17 +829,29 @@ class Calculation:
                            + " for TM with alpha = " + str(alpha_degrees))
             y2_lab_str = 'T'
             if entry_reflection_s == "on":
+                data = r_f_ll + []
                 if entry_tm_te_s == "TE":
+                    name = tlt_str_te+".csv"
                     Graphic.graphic(vector_lambda_l, r_f_ll, lab_l=label_l, tlt_s=tlt_str_te, xla_s=xla_str,
                                     yla_s=y_lab_str)
                 elif entry_tm_te_s == "TM":
+                    name = tlt_str_tm+".csv"
                     Graphic.graphic(vector_lambda_l, r_f_ll, lab_l=label_l, tlt_s=tlt_str_tm, xla_s=xla_str,
                                     yla_s=y_lab_str)
             if entry_transmission_s == "on":
+                data = data + t_f_ll
                 if entry_tm_te_s == "TE":
+                    if entry_reflection_s == "on":
+                        name = name + " and " + tlt2_str_te+".csv"
+                    else:
+                        name = tlt2_str_te+".csv"
                     Graphic.graphic(vector_lambda_l, t_f_ll, lab_l=label_l, tlt_s=tlt2_str_te, xla_s=xla_str,
                                     yla_s=y2_lab_str)
                 elif entry_tm_te_s == "TM":
+                    if entry_reflection_s == "on":
+                        name = name + " and " + tlt2_str_tm+".csv"
+                    else:
+                        name = tlt2_str_tm+".csv"
                     Graphic.graphic(vector_lambda_l, t_f_ll, lab_l=label_l, tlt_s=tlt2_str_tm, xla_s=xla_str,
                                     yla_s=y2_lab_str)
             if entry_circle_s == 'on':
@@ -834,17 +880,29 @@ class Calculation:
                            + "for TM with alpha = " + str(alpha_degrees))
             y2_lab_str = 'T'
             if entry_reflection_s == "on":
+                data = r_n3_ll + []
                 if entry_tm_te_s == "TE":
+                    name = tlt_str_te+".csv"
                     Graphic.graphic(vector_lambda_l, r_n3_ll, lab_l=label_l, tlt_s=tlt_str_te, xla_s=xla_str,
                                     yla_s=y_lab_str)
                 elif entry_tm_te_s == "TM":
+                    name = tlt_str_tm+".csv"
                     Graphic.graphic(vector_lambda_l, r_n3_ll, lab_l=label_l, tlt_s=tlt_str_tm, xla_s=xla_str,
                                     yla_s=y_lab_str)
             if entry_transmission_s == "on":
+                data = data + t_n3_ll
                 if entry_tm_te_s == "TE":
+                    if entry_reflection_s == "on":
+                        name = name + " and " + tlt2_str_te+".csv"
+                    else:
+                        name = tlt2_str_te+".csv"
                     Graphic.graphic(vector_lambda_l, t_n3_ll, lab_l=label_l, tlt_s=tlt2_str_te, xla_s=xla_str,
                                 yla_s=y2_lab_str)
                 elif entry_tm_te_s == "TM":
+                    if entry_reflection_s == "on":
+                        name = name + " and " + tlt2_str_tm+".csv"
+                    else:
+                        name = tlt2_str_tm+".csv"
                     Graphic.graphic(vector_lambda_l, t_n3_ll, lab_l=label_l, tlt_s=tlt2_str_tm, xla_s=xla_str,
                                     yla_s=y2_lab_str)
             if entry_circle_s == 'on':
@@ -873,17 +931,29 @@ class Calculation:
                            + "for TM with alpha = " + str(alpha_degrees))
             y2_lab_str = 'T'
             if entry_reflection_s == "on":
+                data = r_d_ll + []
                 if entry_tm_te_s == "TE":
+                    name = tlt_str_te+".csv"
                     Graphic.graphic(vector_lambda_l, r_d_ll, lab_l=label_l, tlt_s=tlt_str_te, xla_s=xla_str,
                                     yla_s=y_lab_str)
                 elif entry_tm_te_s == "TM":
+                    name = tlt_str_tm+".csv"
                     Graphic.graphic(vector_lambda_l, r_d_ll, lab_l=label_l, tlt_s=tlt_str_tm, xla_s=xla_str,
                                     yla_s=y_lab_str)
             if entry_transmission_s == "on":
+                data = data + t_d_ll
                 if entry_tm_te_s == "TE":
+                    if entry_reflection_s == "on":
+                        name = name + " and " + tlt2_str_te+".csv"
+                    else:
+                        name = tlt2_str_te+".csv"
                     Graphic.graphic(vector_lambda_l, t_d_ll, lab_l=label_l, tlt_s=tlt2_str_te, xla_s=xla_str,
                                     yla_s=y2_lab_str)
                 elif entry_tm_te_s == "TM":
+                    if entry_reflection_s == "on":
+                        name = name + " and " + tlt2_str_tm+".csv"
+                    else:
+                        name = tlt2_str_tm+".csv"
                     Graphic.graphic(vector_lambda_l, t_d_ll, lab_l=label_l, tlt_s=tlt2_str_tm, xla_s=xla_str,
                                     yla_s=y2_lab_str)
             if entry_circle_s == 'on':
@@ -901,22 +971,34 @@ class Calculation:
                                                              k0_list, d_dr_list, entry_tm_te_s, alpha)
             label_l = ["f = " + str(f_r_list[i]) for i in range(len(f_r_list))]
             if entry_dri_s == "on":
+                data = dynamic_i + []
                 tlt_str_te, xla_str, y_lab_str = "Intensity Dynamic Range for TE", "thickness d", "Intensity"
                 tlt_str_tm = "Intensity Dynamic Range for TM with alpha = " + str(alpha_degrees)
                 if entry_tm_te_s == "TE":
+                    name = tlt_str_te+".csv"
                     Graphic.graphic(d_dr_list, dynamic_i, lab_l=label_l, tlt_s=tlt_str_te, xla_s=xla_str,
                                     yla_s=y_lab_str)
                 elif entry_tm_te_s == "TM":
+                    name = tlt_str_tm+".csv"
                     Graphic.graphic(d_dr_list, dynamic_i, lab_l=label_l, tlt_s=tlt_str_tm, xla_s=xla_str,
                                     yla_s=y_lab_str)
             if entry_drw_s == "on":
-                tlt_str_te, xla_str, y_lab_str = "Wavelength Dynamic Range", "thickness d (μm)", "Wavelength (nm)"
-                tlt_str_tm = "Wavelength Dynamic Range for TM with alpha = " + str(alpha_degrees)
+                data = data + dynamic_w
+                tlt2_str_te, xla_str, y_lab_str = "Wavelength Dynamic Range", "thickness d (μm)", "Wavelength (nm)"
+                tlt2_str_tm = "Wavelength Dynamic Range for TM with alpha = " + str(alpha_degrees)
                 if entry_tm_te_s == "TE":
-                    Graphic.graphic(d_dr_list, dynamic_w, lab_l=label_l, tlt_s=tlt_str_te, xla_s=xla_str,
+                    if entry_dri_s == "on":
+                        name = name + " and " + tlt2_str_te+".csv"
+                    else:
+                        name = tlt2_str_te+".csv"
+                    Graphic.graphic(d_dr_list, dynamic_w, lab_l=label_l, tlt_s=tlt2_str_te, xla_s=xla_str,
                                     yla_s=y_lab_str)
                 elif entry_tm_te_s == "TM":
-                    Graphic.graphic(d_dr_list, dynamic_w, lab_l=label_l, tlt_s=tlt_str_tm, xla_s=xla_str,
+                    if entry_dri_s == "on":
+                        name = name + " and " + tlt2_str_tm+".csv"
+                    else:
+                        name = tlt2_str_tm+".csv"
+                    Graphic.graphic(d_dr_list, dynamic_w, lab_l=label_l, tlt_s=tlt2_str_tm, xla_s=xla_str,
                                     yla_s=y_lab_str)
 
         print("calcul end")
@@ -1066,6 +1148,9 @@ class Graphic:
 
             def print_button_click() -> None:
                 Graphic.print_graph()
+
+            def export_button_click() -> None:
+                Material.save_list_to_csv()
 
             def checkbox_clicked_color(checkbox) -> None:
                 if checkbox == self.color_checkbox_1:
@@ -1259,11 +1344,13 @@ class Graphic:
 
             self.textbox_TE = ctk.CTkTextbox(self.tabview.tab("TE"), width=250)
             self.textbox_TE.grid(padx=0, pady=0)
-            self.textbox_TE.insert("0.0", "TE is feur TE")
+            self.textbox_TE.insert("0.0", "In a TE wave, the electric field is perpendicular to the direction"
+                                          " of propagation")
 
             self.textbox_TM = ctk.CTkTextbox(self.tabview.tab("TM"), width=250)
             self.textbox_TM.grid(padx=0, pady=0)
-            self.textbox_TM.insert("0.0", "TM is feur TM")
+            self.textbox_TM.insert("0.0", "In a TM wave, the magnetic field is perpendicular to the direction"
+                                          " of propagation")
 
             self.tabview2 = ctk.CTkTabview(master=self.frame, height=400, width=700, command=image_change)
             self.tabview2.grid(row=3, column=0, columnspan=8, padx=50, pady=25, sticky="nsew")
@@ -1348,13 +1435,17 @@ class Graphic:
             self.label = ctk.CTkLabel(self.tabview3.tab("d variations"), text="", font=font_name, width=80)
             self.label.grid(row=0, column=2, padx=10, pady=10, sticky="nsew")
 
-            self.button_color_calcul = ctk.CTkButton(self.tabview2.tab("Color in glass"), text="Calcul", width=80,
+            self.button_color_calcul = ctk.CTkButton(self.tabview2.tab("Color in glass"), text="Calculation", width=80,
                                                      command=calcul_button_click)
             self.button_color_calcul.grid(row=3, column=0, pady=10, padx=10, sticky="nsew")
 
-            self.button_color_print = ctk.CTkButton(self.tabview2.tab("Color in glass"), text="Print", width=80,
+            self.button_color_print = ctk.CTkButton(self.tabview2.tab("Color in glass"), text="Show", width=75,
                                                     command=print_button_click)
-            self.button_color_print.grid(row=3, column=6, pady=10, padx=10, sticky="nsew")
+            self.button_color_print.grid(row=3, column=6, pady=10, padx=(10, 15), sticky="nsew")
+
+            self.button_color_print = ctk.CTkButton(self.tabview2.tab("Color in glass"), text="Export data", width=100,
+                                                    command=export_button_click)
+            self.button_color_print.grid(row=3, column=3, pady=10, padx=0, sticky="nsew")
 
             self.label_color_substrate = ctk.CTkLabel(self.tabview2.tab("Sensor"), text="Substrate :", font=font_name,
                                                       width=100)
@@ -1514,22 +1605,26 @@ class Graphic:
             self.sensor_checkbox_11 = ctk.CTkCheckBox(self.tabview2.tab("Sensor"), text="Reflection",
                                                       variable=self.check_reflection, onvalue="on", offvalue="off",
                                                       width=100)
-            self.sensor_checkbox_11.grid(row=3, column=2, padx=0, pady=10, sticky="nsew")
+            self.sensor_checkbox_11.grid(row=3, column=2, padx=0, pady=0, sticky="nsew")
 
             self.sensor_checkbox_22 = ctk.CTkCheckBox(self.tabview2.tab("Sensor"), text="Transmission",
                                                       variable=self.check_transmission, onvalue="on", offvalue="off",
                                                       width=100)
-            self.sensor_checkbox_22.grid(row=3, column=3, columnspan=2, padx=0, pady=10, sticky="nsew")
+            self.sensor_checkbox_22.grid(row=3, column=3, columnspan=2, padx=0, pady=0, sticky="nsew")
 
             self.sensor_checkbox_3 = ctk.CTkCheckBox(self.tabview2.tab("Sensor"), text="Color Circle",
                                                      variable=self.check_circle, onvalue="on", offvalue="off",
                                                      width=90)
-            self.sensor_checkbox_3.grid(row=3, column=4, columnspan=2, padx=(10, 0), pady=10, sticky="nsew")
+            self.sensor_checkbox_3.grid(row=3, column=4, columnspan=2, padx=(10, 0), pady=0, sticky="nsew")
 
-            self.button_sensor_calcul = ctk.CTkButton(self.tabview2.tab("Sensor"), text="Calcul", width=80,
+            self.button_sensor_calcul = ctk.CTkButton(self.tabview2.tab("Sensor"), text="Calculation", width=80,
                                                       command=calcul_button_click)
             self.button_sensor_calcul.grid(row=4, column=0, pady=(0, 10), padx=10, sticky="nsew")
 
-            self.button_sensor_print = ctk.CTkButton(self.tabview2.tab("Sensor"), text="Print", width=80,
+            self.button_sensor_print = ctk.CTkButton(self.tabview2.tab("Sensor"), text="Show", width=75,
                                                      command=print_button_click)
-            self.button_sensor_print.grid(row=4, column=6, pady=(0, 10), padx=10, sticky="nsew")
+            self.button_sensor_print.grid(row=4, column=6, pady=(0, 10), padx=(10, 15), sticky="nsew")
+
+            self.button_color_print = ctk.CTkButton(self.tabview2.tab("Sensor"), text="Export data", width=100,
+                                                    command=export_button_click)
+            self.button_color_print.grid(row=4, column=3, pady=10, padx=0, sticky="nsew")
