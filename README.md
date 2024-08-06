@@ -18,8 +18,8 @@ If you need specific information on n1, n2, n3, f, d, TE, TM click on it specifi
 - choose the host, the substrate and the metal(s) observed
 - choose the variation to be observed (variation of f, n3, d) or the dynamic range
 - click on calculation
-- click on export data for make a csv file with the data of the last calcul
-- click on show
+- click on export data (export the last calcul on .csv)
+- click on show (show the last calcul)
 
 ## Prerequisites
 

@@ -8,7 +8,7 @@ import os
 from typing import List
 from typing import Tuple
 import customtkinter as ctk
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageDraw, ImageFont
 
 # variables globales :
 alpha: float = 0.0
@@ -467,7 +467,7 @@ class Calculation:
     @staticmethod
     def reflection_n_3(n_3_l: list, f_val: float, epsilon_h_l: list, eta_l: list, n_1_l: list, k0_l: list,
                        d_val: float, t_val: str, alpha_1_val: float) \
-            -> (Tuple)[List[List[float]], List[List[float]]]:
+            -> Tuple[List[List[float]], List[List[float]]]:
         rr_n_3_ll: List[List[float]] = []
         tt_n3_ll: List[List[float]] = []
         n_eff_ll: List[List[float]] = Calculation.n_eff_calc([f_val], epsilon_h_l, eta_l)
@@ -724,6 +724,8 @@ class Calculation:
         name = ""
 
         print("calcul start")
+        fig_calcul = Graphic.show_calcul_processing()
+
         start_v: float = float(entry_start_s)
         stop_v: float = float(entry_stop_s)
         n_v: int = int((stop_v - start_v) * 10000 + 1)
@@ -1002,6 +1004,7 @@ class Calculation:
                                     yla_s=y_lab_str)
 
         print("calcul end")
+        plt.close(fig_calcul)
 
 
 class Graphic:
@@ -1021,10 +1024,20 @@ class Graphic:
         plt.tight_layout()
 
     @staticmethod
-    def print_graph():
+    def print_graph() -> None:
         print("start printing")
         plt.show()
         print("end printing")
+
+    @staticmethod
+    def show_calcul_processing() -> plt.Figure:
+        plt.close("all")
+        fig, ax = plt.subplots()
+        ax.text(0.5, 0.5, 'Calcul Processing', fontsize=24, ha='center', va='center')
+        ax.axis('off')
+        plt.show(block=False)
+        plt.pause(0.1)
+        return fig
 
     class Gui(ctk.CTk):
         def __init__(self):
