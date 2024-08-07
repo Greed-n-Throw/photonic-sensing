@@ -8,7 +8,7 @@ import os
 from typing import List
 from typing import Tuple
 import customtkinter as ctk
-from PIL import Image, ImageTk, ImageDraw, ImageFont
+from PIL import Image, ImageTk
 
 # variables globales :
 alpha: float = 0.0
@@ -609,7 +609,7 @@ class Calculation:
     @staticmethod
     def dynamic_range(f_l: List[float], epsilon_h_l: List[float], eta_l: List[float], n_1_l: List[float],
                       k0_l: List[float], d_l: List[float], t_val: str, alpha_1_val: float) \
-            -> (Tuple)[List[List[float]], List[List[float]]]:
+            -> Tuple[List[List[float]], List[List[float]]]:
         n_eff_ll: List[List[float]] = Calculation.n_eff_calc(f_l, epsilon_h_l, eta_l)
         crb_i_ll: List[List[float]] = []
         crb_w_ll: List[List[float]] = []
@@ -1025,6 +1025,7 @@ class Graphic:
 
     @staticmethod
     def print_graph() -> None:
+
         print("start printing")
         plt.show()
         print("end printing")
@@ -1032,8 +1033,8 @@ class Graphic:
     @staticmethod
     def show_calcul_processing() -> plt.Figure:
         plt.close("all")
-        fig, ax = plt.subplots()
-        ax.text(0.5, 0.5, 'Calcul Processing', fontsize=24, ha='center', va='center')
+        fig, ax = plt.subplots(figsize=(5, 1))
+        ax.text(0.5, 0.5, 'Calculation in progress', fontsize=24, ha='center', va='center')
         ax.axis('off')
         plt.show(block=False)
         plt.pause(0.1)
