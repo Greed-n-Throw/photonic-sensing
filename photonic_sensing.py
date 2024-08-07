@@ -36,7 +36,7 @@ class ConstVal:
         d_r_l = list(np.linspace(0.020, 0.140, 13))
         for i in range(len(d_r_l)):
             d_r_l[i] = int(d_r_l[i] * 1000) / 1000
-        d_dr_l = list(np.linspace(0.020, 0.140, 61))
+        d_dr_l = list(np.linspace(0.020, 0.140, 121))
         for i in range(len(d_dr_l)):
             d_dr_l[i] = int(d_dr_l[i] * 1000) / 1000
         n_3_l = list(np.linspace(1.0, 1.33, 12))
@@ -143,8 +143,8 @@ class Light:
 
     @staticmethod
     def hsv_circle(target_rgb_llt: List[List[Tuple[float, float, float]]], hsv_l: List[str], title_s: str) -> None:
-        n_v: int = 180
-        e_v: int = 20
+        n_v: int = 360
+        e_v: int = 25
         s_v: int = 4000 // e_v
         first_element: list = [0, 0, 0, 0, 0]
 
@@ -185,6 +185,71 @@ class Light:
                            for i in range(2)):
                         list_plot[o].append((x_v, y_v))
                         first_element[o] = len(list_plot[o])-1
+
+                    for j in range(1, n2_v):
+                        if all(abs(hsv_color_t[i] - target_hsv_llt[o][j][i]) <= [1 / ((n_v - 1) * 2), 1 / (e_v * 2)][i]
+                               for i in range(2)):
+                            list_plot[o].append((x_v, y_v))
+                            break
+
+        for o in range(n1_v):
+            for j in range(0, len(list_plot[o])):
+                x, y = list_plot[o][j]
+                ax.scatter(x, y, color=hsv_color_l[o], marker='o', s=15)
+
+            x, y = list_plot[o][first_element[o]]
+            ax.scatter(x, y, color=hsv_color_l[o], marker='+', label=hsv_l[o], s=150)
+
+        ax.set_title(str(title_s))
+        ax.legend()
+
+    @staticmethod
+    def hsv_circle_alterate_but_quicker(target_rgb_llt: List[List[Tuple[float, float, float]]], hsv_l: List[str],
+                                        title_s: str) -> None:
+        n_v: int = 360
+        e_v: int = 25
+        first_element: list = [0, 0, 0, 0, 0]
+
+        image_path = 'C:/Users/mateo/Desktop/photonic-sensing/res/image/hsv_360_25_4000_10_10.png'
+        image = Image.open(image_path)
+
+        fig, ax = plt.subplots(figsize=(10, 10))
+        ax.set_xlim(-1.2, 1.2)
+        ax.set_ylim(-1.2, 1.2)
+        ax.imshow(image, extent=(-1.8, 1.8, -1.5, 1.5))
+        ax.set_aspect('equal')
+        ax.axis('off')
+
+        hsv_color_l: List = ['k', 'gray', 'brown', 'blue', 'darkblue']
+
+        n1_v: int = len(target_rgb_llt)
+        n2_v: int = len(target_rgb_llt[0])
+
+        list_plot: List[List[Tuple[float, float]]] = [[] for _ in range(n1_v)]
+        target_hsv_llt: List[List[Tuple[float, float, float]]] = []
+        for p in range(n1_v):
+            target_hsv_lt: List[Tuple[float, float, float]] = []
+            for m in range(n2_v):
+                target_hsv_lt.append(colorsys.rgb_to_hsv(np.real(target_rgb_llt[p][m][0]),
+                                                         np.real(target_rgb_llt[p][m][1]),
+                                                         np.real(target_rgb_llt[p][m][2])))
+            target_hsv_llt.append(target_hsv_lt)
+
+        for k in range(e_v + 1):
+            u: float = int(k / (e_v + 1) * 1000) / 10
+            print(f"{u}%")
+            hsv_colors_lt: List[Tuple[float, float, int]] = [(i / n_v, 1 - k / e_v, 1) for i in range(n_v)]
+            rgb_colors_lt: List[tuple[float, float, float]] = [colorsys.hsv_to_rgb(*hsv) for hsv in hsv_colors_lt]
+
+            for i, (rgb_color_t, hsv_color_t) in enumerate(zip(rgb_colors_lt, hsv_colors_lt)):
+                x_v: float = np.cos(2 * np.pi * i / n_v) * (1 - k / e_v)
+                y_v: float = np.sin(2 * np.pi * i / n_v) * (1 - k / e_v)
+
+                for o in range(n1_v):
+                    if all(abs(hsv_color_t[i] - target_hsv_llt[o][0][i]) <= [1 / ((n_v - 1) * 2), 1 / (e_v * 2)][i]
+                           for i in range(2)):
+                        list_plot[o].append((x_v, y_v))
+                        first_element[o] = len(list_plot[o]) - 1
 
                     for j in range(1, n2_v):
                         if all(abs(hsv_color_t[i] - target_hsv_llt[o][j][i]) <= [1 / ((n_v - 1) * 2), 1 / (e_v * 2)][i]
@@ -793,12 +858,12 @@ class Calculation:
             if entry_tm_te_s == "TE":
                 title_ = "Color Transmission in function of f which scale linearly from 0.0000001 to 0.1 for TE"
                 name = title_+".csv"
-                Light.hsv_circle(rgb_clr_llt, hsv_list, title_)
+                Light.hsv_circle_alterate_but_quicker(rgb_clr_llt, hsv_list, title_)
             elif entry_tm_te_s == "TM":
                 title_ = ("Color Transmission in function of f which scale linearly from 0.0000001 to 0.1 for TM "
                           "with alpha = " + str(alpha_degrees))
                 name = title_+".csv"
-                Light.hsv_circle(rgb_clr_llt, hsv_list, title_)
+                Light.hsv_circle_alterate_but_quicker(rgb_clr_llt, hsv_list, title_)
 
         elif calc_type == 'I d var':
             intensity_lll = Calculation.i_calc_d(float(entry_f_s), k0_list, d_i_list, epsilon_h_list, eta_list,
@@ -808,25 +873,25 @@ class Calculation:
             if entry_tm_te_s == "TE":
                 title_ = "Color Transmission in function of d which scale linearly from 0.1 mm to 1 cm for TE"
                 name = title_+".csv"
-                Light.hsv_circle(rgb_clr_llt, hsv_list, title_)
+                Light.hsv_circle_alterate_but_quicker(rgb_clr_llt, hsv_list, title_)
             elif entry_tm_te_s == "TM":
                 title_ = ("Color Transmission in function of d which scale linearly from 0.1 mm to 1 cm for TM "
                           "with alpha = " + str(alpha_degrees))
                 name = title_+".csv"
-                Light.hsv_circle(rgb_clr_llt, hsv_list, title_)
+                Light.hsv_circle_alterate_but_quicker(rgb_clr_llt, hsv_list, title_)
 
         elif calc_type == "R/lambda f var":
             r_f_ll, t_f_ll = Calculation.reflection_f(float(entry_n3_s), f_r_list, epsilon_h_list, eta_list[0],
                                                       n_1_list, k0_list, float(entry_d_s), entry_tm_te_s, alpha)
             label_l = ["f = " + str(f_r_list[i]) for i in range(len(f_r_list))]
             tlt_str_te = ("reflection with f variations for d = " + str(entry_d_s) + " and n3 = " + str(entry_n3_s)
-                          + "for TE")
+                          + " for TE")
             tlt_str_tm = ("reflection with f variations for d = " + str(entry_d_s) + " and n3 = " + str(entry_n3_s)
-                          + "for TM with alpha = " + str(alpha_degrees))
+                          + " for TM with alpha = " + str(alpha_degrees))
             xla_str = "wavelength (nm)"
             y_lab_str = "R"
             tlt2_str_te = ("Transmission with f variations for d = " + str(entry_d_s) + " and n3 = " + str(entry_n3_s)
-                           + "for TE")
+                           + " for TE")
             tlt2_str_tm = ("Transmission with f variations for d = " + str(entry_d_s) + " and n3 = " + str(entry_n3_s)
                            + " for TM with alpha = " + str(alpha_degrees))
             y2_lab_str = 'T'
@@ -862,24 +927,24 @@ class Calculation:
                             "alpha = ") + str(alpha_degrees)
                 rgb_clr_llt = Light.rgb_i(f_r_list, [t_f_ll], n_v, vector_lambda_l)
                 if entry_tm_te_s == "TE":
-                    Light.hsv_circle(rgb_clr_llt, hsv_list, title_te)
+                    Light.hsv_circle_alterate_but_quicker(rgb_clr_llt, hsv_list, title_te)
                 elif entry_tm_te_s == "TM":
-                    Light.hsv_circle(rgb_clr_llt, hsv_list, title_tm)
+                    Light.hsv_circle_alterate_but_quicker(rgb_clr_llt, hsv_list, title_tm)
 
         elif calc_type == "R/lambda n3 var":
             r_n3_ll, t_n3_ll = Calculation.reflection_n_3(n_3_list, float(entry_f_s), epsilon_h_list, eta_list[0],
                                                           n_1_list, k0_list, float(entry_d_s), entry_tm_te_s, alpha)
             label_l = ["n3 = " + str(n_3_list[i]) for i in range(len(n_3_list))]
             tlt_str_te = ("reflection with n3 variations for f = " + str(entry_f_s) + " and d = " + str(entry_d_s)
-                          + "for TE")
+                          + " for TE")
             tlt_str_tm = ("reflection with n3 variations for f = " + str(entry_f_s) + " and d = " + str(entry_d_s)
-                          + "for TM with alpha = " + str(alpha_degrees))
+                          + " for TM with alpha = " + str(alpha_degrees))
             xla_str = "wavelength (nm)"
             y_lab_str = "R"
             tlt2_str_te = ("Transmission with n3 variations for f = " + str(entry_f_s) + " and d = " + str(entry_d_s)
-                           + "for TE")
+                           + " for TE")
             tlt2_str_tm = ("Transmission with n3 variations for f = " + str(entry_f_s) + " and d = " + str(entry_d_s)
-                           + "for TM with alpha = " + str(alpha_degrees))
+                           + " for TM with alpha = " + str(alpha_degrees))
             y2_lab_str = 'T'
             if entry_reflection_s == "on":
                 data = r_n3_ll + []
@@ -913,24 +978,24 @@ class Calculation:
                             "with alpha = ") + str(alpha_degrees)
                 rgb_clr_llt = Light.rgb_i(n_3_list, [t_n3_ll], n_v, vector_lambda_l)
                 if entry_tm_te_s == "TE":
-                    Light.hsv_circle(rgb_clr_llt, hsv_list, title_te)
+                    Light.hsv_circle_alterate_but_quicker(rgb_clr_llt, hsv_list, title_te)
                 elif entry_tm_te_s == "TM":
-                    Light.hsv_circle(rgb_clr_llt, hsv_list, title_tm)
+                    Light.hsv_circle_alterate_but_quicker(rgb_clr_llt, hsv_list, title_tm)
 
         elif calc_type == "R/lambda d var":
             r_d_ll, t_d_ll = Calculation.reflection_d(float(entry_n3_s), float(entry_f_s), epsilon_h_list, eta_list[0],
                                                       sd_ll["glass_n"], k0_list, d_r_list, entry_tm_te_s, alpha)
             label_l = ["d = " + str(d_r_list[i]) for i in range(len(d_r_list))]
             tlt_str_te = ("reflection with d variations for f =  " + str(entry_f_s) + " and n3 = " + str(entry_n3_s)
-                          + "for TE")
+                          + " for TE")
             tlt_str_tm = ("reflection with d variations for f = " + str(entry_f_s) + " and n3 = " + str(entry_n3_s)
-                          + "for TM with alpha = " + str(alpha_degrees))
+                          + " for TM with alpha = " + str(alpha_degrees))
             xla_str = "wavelength (nm)"
             y_lab_str = "R"
             tlt2_str_te = ("reflection with d variations for f = " + str(entry_f_s) + " and n3 = " + str(entry_n3_s)
-                           + "for TE")
+                           + " for TE")
             tlt2_str_tm = ("reflection with d variations for f = " + str(entry_f_s) + " and n3 = " + str(entry_n3_s)
-                           + "for TM with alpha = " + str(alpha_degrees))
+                           + " for TM with alpha = " + str(alpha_degrees))
             y2_lab_str = 'T'
             if entry_reflection_s == "on":
                 data = r_d_ll + []
@@ -964,9 +1029,9 @@ class Calculation:
                             "with alpha = ") + str(alpha_degrees)
                 rgb_clr_llt = Light.rgb_i(n_3_list, [t_d_ll], n_v, vector_lambda_l)
                 if entry_tm_te_s == "TE":
-                    Light.hsv_circle(rgb_clr_llt, hsv_list, title_te)
+                    Light.hsv_circle_alterate_but_quicker(rgb_clr_llt, hsv_list, title_te)
                 elif entry_tm_te_s == "TM":
-                    Light.hsv_circle(rgb_clr_llt, hsv_list, title_tm)
+                    Light.hsv_circle_alterate_but_quicker(rgb_clr_llt, hsv_list, title_tm)
 
         if calcul_type_s == "DR":
             dynamic_i, dynamic_w = Calculation.dynamic_range(f_r_list, epsilon_h_list, eta_list[0], n_1_list,
