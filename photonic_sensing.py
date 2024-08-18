@@ -39,7 +39,7 @@ class ConstVal:
         d_dr_l = list(np.linspace(0.020, 0.140, 121))
         for i in range(len(d_dr_l)):
             d_dr_l[i] = int(d_dr_l[i] * 1000) / 1000
-        n_3_l = list(np.linspace(1.0, 1.33, 6))
+        n_3_l = list(np.linspace(1.0, 1.33, 11))
         for i in range(len(n_3_l)):
             n_3_l[i] = int(n_3_l[i]*100)/100
         return f_i_l, d_i_l, f_r_l, d_r_l, d_dr_l, n_3_l
@@ -992,9 +992,9 @@ class Calculation:
                           + " for TM with alpha = " + str(alpha_degrees))
             xla_str = "wavelength (nm)"
             y_lab_str = "R"
-            tlt2_str_te = ("reflection with d variations for f = " + str(entry_f_s) + " and n3 = " + str(entry_n3_s)
+            tlt2_str_te = ("transmission with d variations for f = " + str(entry_f_s) + " and n3 = " + str(entry_n3_s)
                            + " for TE")
-            tlt2_str_tm = ("reflection with d variations for f = " + str(entry_f_s) + " and n3 = " + str(entry_n3_s)
+            tlt2_str_tm = ("transmission with d variations for f = " + str(entry_f_s) + " and n3 = " + str(entry_n3_s)
                            + " for TM with alpha = " + str(alpha_degrees))
             y2_lab_str = 'T'
             if entry_reflection_s == "on":
