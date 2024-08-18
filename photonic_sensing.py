@@ -39,7 +39,7 @@ class ConstVal:
         d_dr_l = list(np.linspace(0.020, 0.140, 121))
         for i in range(len(d_dr_l)):
             d_dr_l[i] = int(d_dr_l[i] * 1000) / 1000
-        n_3_l = list(np.linspace(1.0, 1.33, 12))
+        n_3_l = list(np.linspace(1.0, 1.33, 6))
         for i in range(len(n_3_l)):
             n_3_l[i] = int(n_3_l[i]*100)/100
         return f_i_l, d_i_l, f_r_l, d_r_l, d_dr_l, n_3_l
@@ -210,7 +210,7 @@ class Light:
         e_v: int = 25
         first_element: list = [0, 0, 0, 0, 0]
 
-        image_path = 'C:/Users/mateo/Desktop/photonic-sensing/res/image/hsv_360_25_4000_10_10.png'
+        image_path = os.path.join('res', 'image', 'hsv_360_25_4000_10_10.png')
         image = Image.open(image_path)
 
         fig, ax = plt.subplots(figsize=(10, 10))
@@ -436,12 +436,12 @@ class Calculation:
             i_ll: List[List[float]] = []
             if t_val == "TE":
                 for i in range(len(f_l)):
-                    i_l = [np.exp(-2 * k0 * k * d_val) for k0, k in zip(k0_l, k_ll[i])]
+                    i_l = [np.exp(-1 * k0 * k * d_val) for k0, k in zip(k0_l, k_ll[i])]
                     i_ll.append(i_l)
                 i_lll.append(i_ll)
             if t_val == "TM":
                 for i in range(len(f_l)):
-                    i_l = [np.exp(-2 * k0 * k * d_val * math.cos(alpha_1_val)) for k0, k in zip(k0_l, k_ll[i])]
+                    i_l = [np.exp(-1 * k0 * k * d_val * math.cos(alpha_1_val)) for k0, k in zip(k0_l, k_ll[i])]
                     i_ll.append(i_l)
                 i_lll.append(i_ll)
         return i_lll
@@ -457,12 +457,12 @@ class Calculation:
 
             if t_val == "TE":
                 for d in d_l:
-                    i_l = [np.exp(-2 * k0 * k * d) for k0, k in zip(k0_l, k_ll[0])]
+                    i_l = [np.exp(-1 * k0 * k * d) for k0, k in zip(k0_l, k_ll[0])]
                     i_ll.append(i_l)
                 i_lll.append(i_ll)
             if t_val == "TM":
                 for d in d_l:
-                    i_l = [np.exp(-2 * k0 * k * d * math.cos(alpha_1_val)) for k0, k in zip(k0_l, k_ll[0])]
+                    i_l = [np.exp(-1 * k0 * k * d * math.cos(alpha_1_val)) for k0, k in zip(k0_l, k_ll[0])]
                     i_ll.append(i_l)
                 i_lll.append(i_ll)
         return i_lll
